@@ -1,0 +1,19 @@
+name: ai_wellness_flutter
+description: Production-ready AI Wellness & High-Protein Platform in Flutter with soothing Green and Cyan glassmorphism.
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+  flutter: '>=3.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+
+flutter:
+  uses-material-design: true

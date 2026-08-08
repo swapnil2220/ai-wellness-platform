@@ -1,0 +1,36 @@
+"""Database package for SQLite persistence."""
+from database.db import (
+    Base,
+    UserProfileRecord,
+    DailyMacroLogRecord,
+    LoggedMealRecord,
+    SavedInsightRecord,
+    get_engine,
+    get_session,
+    init_db,
+    save_or_update_profile,
+    get_latest_profile,
+    log_meal,
+    get_today_progress,
+    get_all_logged_meals,
+    save_favorite_insight,
+    get_favorite_insights,
+)
+
+__all__ = [
+    "Base",
+    "UserProfileRecord",
+    "DailyMacroLogRecord",
+    "LoggedMealRecord",
+    "SavedInsightRecord",
+    "get_engine",
+    "get_session",
+    "init_db",
+    "save_or_update_profile",
+    "get_latest_profile",
+    "log_meal",
+    "get_today_progress",
+    "get_all_logged_meals",
+    "save_favorite_insight",
+    "get_favorite_insights",
+]
