@@ -328,7 +328,9 @@ with tab_macro:
     if saved_profile:
         prof_card_col, prof_btn_col = st.columns([5.2, 1.2])
         with prof_card_col:
-            user_display_name = saved_profile.name if (saved_profile.name and len(saved_profile.name.strip()) > 0) else "Guest User"
+            user_display_name = getattr(saved_profile, 'name', 'Guest User')
+            if not user_display_name:
+                user_display_name = "Guest User"
             st.markdown(textwrap.dedent(f"""
                 <div class="glass-card" style="border-left: 4px solid #10B981; margin-bottom: 0; padding: 18px 22px;">
                     <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
@@ -370,7 +372,9 @@ with tab_macro:
         """))
             
     # Defaults from DB if available
-    def_name = saved_profile.name if (saved_profile and saved_profile.name) else "Guest"
+    def_name = getattr(saved_profile, 'name', 'Guest')
+    if not def_name:
+        def_name = "Guest"
     def_weight = saved_profile.weight_kg if saved_profile else 75.0
     def_height = saved_profile.height_cm if saved_profile else 178.0
     def_age = saved_profile.age if saved_profile else 28
