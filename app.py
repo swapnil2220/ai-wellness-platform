@@ -316,15 +316,6 @@ with st.sidebar:
         st.info("🟡 Offline Smart Synthesizer Active")
     
     st.divider()
-    st.markdown("### 🧬 Longevity Reference")
-    st.markdown("""
-    - **Protein Satiety:** 1.6–2.2g/kg
-    - **Leucine MPS Trigger:** 2.5–3.5g / meal
-    - **Hydration:** 35–45ml / kg
-    - **Sleep Target:** 7.5–8.5 hrs
-    """)
-    
-    st.divider()
     st.caption("PULSE AI Platform v1.0.0 • SQLite Persisted")
 
 
@@ -343,6 +334,31 @@ tab_macro, tab_meals, tab_rag, tab_pro = st.tabs([
 with tab_macro:
     db_session = get_session()
     saved_profile = get_latest_profile(db_session)
+    
+    # Active Logged-in User Profile Summary Card
+    if saved_profile:
+        st.markdown(f"""
+        <div class="glass-card" style="border-left: 4px solid #10B981; margin-bottom: 18px; padding: 18px 22px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
+                <div>
+                    <span class="metric-pill pill-green" style="margin-bottom: 6px;">👤 ACTIVE USER PROFILE</span>
+                    <div style="font-size: 1.25rem; font-weight: 700; color: #F0FDFA; margin-top: 4px;">
+                        swapnilshrivastava <span style="font-weight: 400; color: #94A3B8; font-size: 0.95rem;">• {saved_profile.age} yrs • {saved_profile.gender.upper()}</span>
+                    </div>
+                    <div style="font-size: 0.9rem; color: #94A3B8; margin-top: 6px;">
+                        📐 Weight: <b>{saved_profile.weight_kg} kg</b> &nbsp;|&nbsp; 
+                        📏 Height: <b>{saved_profile.height_cm} cm</b> &nbsp;|&nbsp; 
+                        ⚡ Activity: <b>{saved_profile.activity_level.replace('_', ' ').title()}</b> &nbsp;|&nbsp; 
+                        🎯 Goal: <b>{saved_profile.goal.replace('_', ' ').title()}</b>
+                    </div>
+                </div>
+                <div style="text-align: right; font-size: 0.88rem; color: #94A3B8;">
+                    <div>BMR Baseline: <b style="color: #22D3EE;">{int(saved_profile.bmr)} kcal</b></div>
+                    <div style="margin-top: 4px;">TDEE baseline: <b style="color: #34D399;">{int(saved_profile.tdee)} kcal</b></div>
+                </div>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
     
     # Defaults from DB if available
     def_weight = saved_profile.weight_kg if saved_profile else 75.0
@@ -437,46 +453,30 @@ with tab_macro:
         st.toast("✅ Profile and scientific macro targets saved to SQLite database!", icon="🎯")
         st.rerun()
     
-    # Premium KPI Target Cards Grid
-    k1, k2, k3, k4, k5 = st.columns(5)
+    # Premium KPI Target Cards Grid (Streamlined to 3 columns to reduce visual clutter)
+    k1, k2, k3 = st.columns(3)
     with k1:
         st.markdown(f"""
-        <div class="kpi-card">
-            <div class="kpi-title">🎯 Daily Calories</div>
+        <div class="kpi-card" style="min-height: 110px;">
+            <div class="kpi-title">🎯 Daily Calorie Target</div>
             <div class="kpi-value">{int(targets.target_calories)} <span style="font-size:0.85rem; color:#94A3B8;">kcal</span></div>
-            <div class="kpi-subtext" style="color: #22D3EE;">TDEE: {int(targets.tdee)} kcal</div>
+            <div class="kpi-subtext" style="color: #22D3EE;">🍞 {targets.carbs_g}g Carbs &nbsp;|&nbsp; 🥑 {targets.fats_g}g Fats</div>
         </div>
         """, unsafe_allow_html=True)
     with k2:
         st.markdown(f"""
-        <div class="kpi-card">
+        <div class="kpi-card" style="min-height: 110px;">
             <div class="kpi-title">🥩 Target Protein</div>
             <div class="kpi-value">{targets.protein_g}g</div>
             <div class="kpi-subtext">{targets.protein_multiplier_used} g/kg bodyweight</div>
         </div>
         """, unsafe_allow_html=True)
     with k3:
-        st.markdown(f"""
-        <div class="kpi-card">
-            <div class="kpi-title">🍞 Carbohydrates</div>
-            <div class="kpi-value">{targets.carbs_g}g</div>
-            <div class="kpi-subtext" style="color: #22D3EE;">{targets.carbs_calories_pct}% of Cals</div>
-        </div>
-        """, unsafe_allow_html=True)
-    with k4:
-        st.markdown(f"""
-        <div class="kpi-card">
-            <div class="kpi-title">🥑 Healthy Fats</div>
-            <div class="kpi-value">{targets.fats_g}g</div>
-            <div class="kpi-subtext" style="color: #A7F3D0;">{targets.fats_calories_pct}% of Cals</div>
-        </div>
-        """, unsafe_allow_html=True)
-    with k5:
         per_meal_p = round(targets.protein_g / max(1, meals_count), 1)
         mops_status = "mTOR Active ⚡" if per_meal_p >= 28.0 else "Low MPS ⚠️"
         mops_color = "#34D399" if per_meal_p >= 28.0 else "#F59E0B"
         st.markdown(f"""
-        <div class="kpi-card">
+        <div class="kpi-card" style="min-height: 110px;">
             <div class="kpi-title">🧬 Leucine Trigger</div>
             <div class="kpi-value">~{per_meal_p}g <span style="font-size:0.85rem; color:#94A3B8;">/meal</span></div>
             <div class="kpi-subtext" style="color: {mops_color};">{mops_status}</div>
@@ -508,41 +508,33 @@ with tab_macro:
         st.plotly_chart(donut_fig, use_container_width=True)
 
     with col_chart2:
-        # Per-Meal Distribution Chart with Soothing Green & Cyan Colors
-        meal_names = [m.name for m in targets.meals]
-        meal_prots = [m.target_protein_g for m in targets.meals]
-        meal_cals = [m.target_calories for m in targets.meals]
-        
-        bar_fig = go.Figure()
-        bar_fig.add_trace(go.Bar(
-            name="Protein (g)",
-            x=meal_names,
-            y=meal_prots,
-            marker_color="#10B981",
-            text=[f"{p}g" for p in meal_prots],
-            textposition="auto"
-        ))
-        bar_fig.add_trace(go.Bar(
-            name="Calories (kcal)",
-            x=meal_names,
-            y=meal_cals,
-            marker_color="#06B6D4",
-            text=[f"{c} kcal" for c in meal_cals],
-            textposition="auto",
-            yaxis="y2"
-        ))
-        bar_fig.update_layout(
-            title="<b>Per-Meal Protein & Calorie Allocation</b>",
-            paper_bgcolor="rgba(0,0,0,0)",
-            plot_bgcolor="rgba(0,0,0,0)",
-            font=dict(color="#F0FDFA", family="Outfit"),
-            yaxis=dict(title="Protein (g)", showgrid=True, gridcolor="rgba(6,182,212,0.12)"),
-            yaxis2=dict(title="Calories (kcal)", overlaying="y", side="right", showgrid=False),
-            legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
-            height=320,
-            margin=dict(l=20, r=20, t=50, b=20),
-        )
-        st.plotly_chart(bar_fig, use_container_width=True)
+        # Per-Meal Target Allocation List (Saves space and looks extremely clean)
+        meal_rows_html = ""
+        for m in targets.meals:
+            status_pill = "<span class='metric-pill pill-green' style='font-size:0.65rem; padding: 2px 8px;'>Active mTOR</span>" if m.target_protein_g >= 28.0 else "<span class='metric-pill pill-amber' style='font-size:0.65rem; padding: 2px 8px;'>Low MPS</span>"
+            meal_rows_html += f"""
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.04);">
+                <div>
+                    <span style="font-weight: 600; color: #F0FDFA; font-size: 0.92rem;">{m.name}</span>
+                    <div style="color: #94A3B8; font-size: 0.8rem; margin-top: 2px;">{int(m.target_calories)} kcal Target</div>
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span style="color: #34D399; font-weight: 700; font-size: 0.98rem;">{m.target_protein_g}g P</span>
+                    {status_pill}
+                </div>
+            </div>
+            """
+            
+        st.markdown(f"""
+        <div class="glass-card" style="min-height: 320px; padding: 22px 24px; margin-bottom: 0;">
+            <div style="font-weight: 700; font-size: 1.1rem; color: #F0FDFA; margin-bottom: 12px; letter-spacing: -0.2px;">
+                🧬 Per-Meal Target Allocation
+            </div>
+            <div style="display: flex; flex-direction: column;">
+                {meal_rows_html}
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
 
     # Today's Progress & Quick Meal Logger
     st.markdown("### 📋 Today's Progress & Meal Logging")
@@ -787,14 +779,14 @@ with tab_meals:
     r_col1, r_col2 = st.columns([1.1, 1.2])
 
     with r_col1:
-        st.markdown("#### 🛒 Ingredients Breakdown")
-        for ing in recipe.ingredients:
-            st.markdown(f"""
-            <div style="display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
-                <span><b>{ing.name}</b> <span style="color:#9CA3AF;">({ing.quantity})</span></span>
-                <span style="color:#34D399; font-weight:600;">+{ing.protein_contribution_g}g P</span>
-            </div>
-            """, unsafe_allow_html=True)
+        with st.expander("🛒 View Ingredients & Protein Breakdown", expanded=False):
+            for ing in recipe.ingredients:
+                st.markdown(f"""
+                <div style="display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
+                    <span><b>{ing.name}</b> <span style="color:#9CA3AF;">({ing.quantity})</span></span>
+                    <span style="color:#34D399; font-weight:600;">+{ing.protein_contribution_g}g P</span>
+                </div>
+                """, unsafe_allow_html=True)
 
         st.markdown(f"""
         <div class="glass-card" style="margin-top: 18px; border-left: 3px solid #60A5FA;">
@@ -873,10 +865,10 @@ with tab_rag:
         all_books = ["All"] + rag_engine.get_all_books()
         book_filter = st.selectbox("Filter Book", all_books)
 
-    # Perform Vector Search
+    # Perform Vector Search (Reduced top_k from 4 to 2 for cleaner view)
     search_results = rag_engine.search(
         query=rag_query,
-        top_k=4,
+        top_k=2,
         category=cat_filter if cat_filter != "All" else None,
         book_title=book_filter if book_filter != "All" else None,
     )
