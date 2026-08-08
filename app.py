@@ -14,6 +14,7 @@ import os
 import streamlit as st
 import plotly.graph_objects as go
 import plotly.express as px
+import textwrap
 from dotenv import load_dotenv
 
 # Load environment variables
@@ -337,28 +338,28 @@ with tab_macro:
     
     # Active Logged-in User Profile Summary Card
     if saved_profile:
-        st.markdown(f"""
-        <div class="glass-card" style="border-left: 4px solid #10B981; margin-bottom: 18px; padding: 18px 22px;">
-            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
-                <div>
-                    <span class="metric-pill pill-green" style="margin-bottom: 6px;">👤 ACTIVE USER PROFILE</span>
-                    <div style="font-size: 1.25rem; font-weight: 700; color: #F0FDFA; margin-top: 4px;">
-                        swapnilshrivastava <span style="font-weight: 400; color: #94A3B8; font-size: 0.95rem;">• {saved_profile.age} yrs • {saved_profile.gender.upper()}</span>
+        st.markdown(textwrap.dedent(f"""
+            <div class="glass-card" style="border-left: 4px solid #10B981; margin-bottom: 18px; padding: 18px 22px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
+                    <div style="text-align: left;">
+                        <span class="metric-pill pill-green" style="margin-bottom: 6px;">👤 ACTIVE USER PROFILE</span>
+                        <div style="font-size: 1.25rem; font-weight: 700; color: #F0FDFA; margin-top: 4px;">
+                            swapnilshrivastava <span style="font-weight: 400; color: #94A3B8; font-size: 0.95rem;">• {saved_profile.age} yrs • {saved_profile.gender.upper()}</span>
+                        </div>
+                        <div style="font-size: 0.9rem; color: #94A3B8; margin-top: 6px;">
+                            📐 Weight: <b>{saved_profile.weight_kg} kg</b> &nbsp;|&nbsp; 
+                            📏 Height: <b>{saved_profile.height_cm} cm</b> &nbsp;|&nbsp; 
+                            ⚡ Activity: <b>{saved_profile.activity_level.replace('_', ' ').title()}</b> &nbsp;|&nbsp; 
+                            🎯 Goal: <b>{saved_profile.goal.replace('_', ' ').title()}</b>
+                        </div>
                     </div>
-                    <div style="font-size: 0.9rem; color: #94A3B8; margin-top: 6px;">
-                        📐 Weight: <b>{saved_profile.weight_kg} kg</b> &nbsp;|&nbsp; 
-                        📏 Height: <b>{saved_profile.height_cm} cm</b> &nbsp;|&nbsp; 
-                        ⚡ Activity: <b>{saved_profile.activity_level.replace('_', ' ').title()}</b> &nbsp;|&nbsp; 
-                        🎯 Goal: <b>{saved_profile.goal.replace('_', ' ').title()}</b>
+                    <div style="text-align: right; font-size: 0.88rem; color: #94A3B8;">
+                        <div>BMR Baseline: <b style="color: #22D3EE;">{int(saved_profile.bmr)} kcal</b></div>
+                        <div style="margin-top: 4px;">TDEE baseline: <b style="color: #34D399;">{int(saved_profile.tdee)} kcal</b></div>
                     </div>
-                </div>
-                <div style="text-align: right; font-size: 0.88rem; color: #94A3B8;">
-                    <div>BMR Baseline: <b style="color: #22D3EE;">{int(saved_profile.bmr)} kcal</b></div>
-                    <div style="margin-top: 4px;">TDEE baseline: <b style="color: #34D399;">{int(saved_profile.tdee)} kcal</b></div>
                 </div>
             </div>
-        </div>
-        """, unsafe_allow_html=True)
+        """), unsafe_allow_html=True)
     
     # Defaults from DB if available
     def_weight = saved_profile.weight_kg if saved_profile else 75.0
@@ -512,29 +513,29 @@ with tab_macro:
         meal_rows_html = ""
         for m in targets.meals:
             status_pill = "<span class='metric-pill pill-green' style='font-size:0.65rem; padding: 2px 8px;'>Active mTOR</span>" if m.target_protein_g >= 28.0 else "<span class='metric-pill pill-amber' style='font-size:0.65rem; padding: 2px 8px;'>Low MPS</span>"
-            meal_rows_html += f"""
-            <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.04);">
-                <div>
-                    <span style="font-weight: 600; color: #F0FDFA; font-size: 0.92rem;">{m.name}</span>
-                    <div style="color: #94A3B8; font-size: 0.8rem; margin-top: 2px;">{int(m.target_calories)} kcal Target</div>
+            meal_rows_html += textwrap.dedent(f"""
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.04);">
+                    <div style="text-align: left;">
+                        <span style="font-weight: 600; color: #F0FDFA; font-size: 0.92rem;">{m.name}</span>
+                        <div style="color: #94A3B8; font-size: 0.8rem; margin-top: 2px;">{int(m.target_calories)} kcal Target</div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span style="color: #34D399; font-weight: 700; font-size: 0.98rem;">{m.target_protein_g}g P</span>
+                        {status_pill}
+                    </div>
                 </div>
-                <div style="display: flex; align-items: center; gap: 8px;">
-                    <span style="color: #34D399; font-weight: 700; font-size: 0.98rem;">{m.target_protein_g}g P</span>
-                    {status_pill}
-                </div>
-            </div>
-            """
+            """)
             
-        st.markdown(f"""
-        <div class="glass-card" style="min-height: 320px; padding: 22px 24px; margin-bottom: 0;">
-            <div style="font-weight: 700; font-size: 1.1rem; color: #F0FDFA; margin-bottom: 12px; letter-spacing: -0.2px;">
-                🧬 Per-Meal Target Allocation
+        st.markdown(textwrap.dedent(f"""
+            <div class="glass-card" style="min-height: 320px; padding: 22px 24px; margin-bottom: 0;">
+                <div style="font-weight: 700; font-size: 1.1rem; color: #F0FDFA; margin-bottom: 12px; letter-spacing: -0.2px; text-align: left;">
+                    🧬 Per-Meal Target Allocation
+                </div>
+                <div style="display: flex; flex-direction: column;">
+                    {meal_rows_html}
+                </div>
             </div>
-            <div style="display: flex; flex-direction: column;">
-                {meal_rows_html}
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
+        """), unsafe_allow_html=True)
 
     # Today's Progress & Quick Meal Logger
     st.markdown("### 📋 Today's Progress & Meal Logging")
