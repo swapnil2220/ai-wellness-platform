@@ -36,6 +36,7 @@ class UserProfileRecord(Base):
     __tablename__ = "user_profiles"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
+    name = Column(String(100), nullable=True, default="Guest")
     weight_kg = Column(Float, nullable=False)
     height_cm = Column(Float, nullable=False)
     age = Column(Integer, nullable=False)
@@ -151,6 +152,7 @@ def save_or_update_profile(
     target_protein_g: float,
     target_carbs_g: float,
     target_fats_g: float,
+    name: str = "Guest",
 ) -> UserProfileRecord:
     """Save or update the latest user profile and targets."""
     profile = session.query(UserProfileRecord).order_by(UserProfileRecord.id.desc()).first()
@@ -158,6 +160,7 @@ def save_or_update_profile(
         profile = UserProfileRecord()
         session.add(profile)
 
+    profile.name = name
     profile.weight_kg = weight_kg
     profile.height_cm = height_cm
     profile.age = age

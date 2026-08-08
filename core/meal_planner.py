@@ -116,170 +116,150 @@ AFFILIATE_CATALOG: Dict[str, AffiliateSupplement] = {
 }
 
 
-# High-Quality Fallback Recipes Catalog
+# High-Quality Fallback Recipes Catalog (Indian Household Friendly)
 FALLBACK_RECIPES_DATABASE = [
     {
-        "meal_name": "Seared Lemon-Herb Chicken Breast with Garlic Quinoa & Roasted Asparagus",
-        "description": "Golden pan-seared chicken breast basted in lemon zest and fresh rosemary, paired with fluffy quinoa and fiber-rich charred asparagus.",
+        "meal_name": "Spiced Tandoori Chicken Tikka with Cucumber Raita",
+        "description": "High-protein lean chicken breast cubes marinated in hung curd, ginger-garlic paste, and traditional tandoori spices, air-fried or pan-cooked, served with cucumber raita.",
         "meal_type": MealType.LUNCH,
         "dietary_pref": DietaryPreference.HIGH_PROTEIN,
         "prep_time_minutes": 10,
-        "cook_time_minutes": 18,
-        "base_protein": 52.0,
-        "base_carbs": 38.0,
-        "base_fat": 11.0,
-        "base_cals": 460.0,
-        "ingredients": [
-            {"name": "Skinless Boneless Chicken Breast", "quantity": "220g", "protein_contribution_g": 46.0},
-            {"name": "Cooked Tricolor Quinoa", "quantity": "100g", "protein_contribution_g": 4.5},
-            {"name": "Tender Asparagus Spears", "quantity": "120g", "protein_contribution_g": 2.5},
-            {"name": "Extra Virgin Olive Oil", "quantity": "1 tsp (5ml)", "protein_contribution_g": 0.0},
-            {"name": "Fresh Lemon Zest, Garlic & Rosemary", "quantity": "To taste", "protein_contribution_g": 0.0}
-        ],
-        "instructions": [
-            "Pat chicken dry, season with sea salt, cracked black pepper, garlic powder, and fresh rosemary.",
-            "Heat a cast-iron skillet over medium-high with olive oil. Sear chicken 6-7 minutes per side until golden and internal temperature reaches 74°C (165°F).",
-            "Toss asparagus into the pan during the last 4 minutes with a squeeze of fresh lemon juice.",
-            "Plate fluffy warm quinoa, top with sliced chicken breast and charred asparagus. Drizzle pan drippings."
-        ],
-        "pro_cooking_tip": "Rest chicken for 5 minutes before slicing to lock in intracellular juices and maintain maximum tenderness.",
-        "supplements": ["whey_isolate", "creatine"]
-    },
-    {
-        "meal_name": "Wild Atlantic Salmon with Crispy Edamame & Roasted Sweet Potato Hash",
-        "description": "Pan-crisped wild salmon fillet rich in astaxanthin & omega-3s, served with a roasted sweet potato and high-protein edamame hash.",
-        "meal_type": MealType.DINNER,
-        "dietary_pref": DietaryPreference.PESCATARIAN,
-        "prep_time_minutes": 12,
         "cook_time_minutes": 15,
-        "base_protein": 46.0,
-        "base_carbs": 42.0,
-        "base_fat": 16.0,
-        "base_cals": 495.0,
+        "base_protein": 52.0,
+        "base_carbs": 12.0,
+        "base_fat": 10.0,
+        "base_cals": 346.0,
         "ingredients": [
-            {"name": "Wild-Caught Salmon Fillet", "quantity": "190g", "protein_contribution_g": 38.0},
-            {"name": "Shelled Organic Edamame", "quantity": "80g", "protein_contribution_g": 9.0},
-            {"name": "Diced Japanese Sweet Potato", "quantity": "140g", "protein_contribution_g": 2.0},
-            {"name": "Avocado Oil Spray", "quantity": "1 light mist", "protein_contribution_g": 0.0},
-            {"name": "Fresh Dill, Smoked Paprika & Sea Salt", "quantity": "To taste", "protein_contribution_g": 0.0}
+            {"name": "Lean Boneless Chicken Breast Cubes", "quantity": "220g", "protein_contribution_g": 46.0},
+            {"name": "Thick Curd / Dahi (for marinade)", "quantity": "3 tbsp (45g)", "protein_contribution_g": 3.0},
+            {"name": "Fresh Cucumber (for raita)", "quantity": "100g", "protein_contribution_g": 1.0},
+            {"name": "Ginger-Garlic Paste, Turmeric, Cumin & Garam Masala", "quantity": "To taste", "protein_contribution_g": 0.0},
+            {"name": "Mustard Oil / Ghee", "quantity": "1 tsp (5ml)", "protein_contribution_g": 0.0},
+            {"name": "Low-fat Dahi (for raita)", "quantity": "50g", "protein_contribution_g": 2.0}
         ],
         "instructions": [
-            "Air-fry or roast diced sweet potato cubes at 200°C (400°F) for 15 minutes until crispy on the edges.",
-            "Toss edamame in during the final 4 minutes of roasting with smoked paprika and flaky salt.",
-            "Sear salmon skin-side down in a hot stainless skillet for 4 minutes until skin is glass-crisp, then flip and cook for 2 minutes.",
-            "Assemble sweet potato-edamame hash as the base and crown with the crispy salmon fillet. Garnish with fresh dill."
+            "Marinate chicken cubes with hung curd, ginger-garlic paste, mustard oil, lemon juice, turmeric, Kashmiri chilli, cumin, and garam masala for 15 minutes.",
+            "Cook in an air-fryer at 190°C (375°F) for 12-14 minutes, or grill on a non-stick pan until nicely charred on all sides.",
+            "Grate cucumber, mix with dahi, a pinch of roasted cumin powder, and black salt to prepare raita.",
+            "Serve hot chicken tikka skewers with cold cucumber raita and fresh mint chutney."
         ],
-        "pro_cooking_tip": "Wild salmon cooks 30% faster than farmed salmon due to lower intramuscular fat. Keep the center slightly translucent.",
-        "supplements": ["omega3", "electrolytes"]
-    },
-    {
-        "meal_name": "High-Protein Greek Yogurt & Chia Superberry Power Bowl",
-        "description": "Thick 0% Greek yogurt layered with organic vanilla whey isolate, wild blueberries, sprouted chia, and roasted almond slivers.",
-        "meal_type": MealType.BREAKFAST,
-        "dietary_pref": DietaryPreference.VEGETARIAN,
-        "prep_time_minutes": 5,
-        "cook_time_minutes": 0,
-        "base_protein": 48.0,
-        "base_carbs": 32.0,
-        "base_fat": 9.0,
-        "base_cals": 400.0,
-        "ingredients": [
-            {"name": "0% Fat Authentic Greek Yogurt", "quantity": "250g", "protein_contribution_g": 26.0},
-            {"name": "Native Vanilla Whey Isolate", "quantity": "25g (1 scoop)", "protein_contribution_g": 22.5},
-            {"name": "Frozen Wild Nordic Blueberries", "quantity": "80g", "protein_contribution_g": 1.0},
-            {"name": "Sprouted Black Chia Seeds", "quantity": "1 tbsp (12g)", "protein_contribution_g": 2.0},
-            {"name": "Ceylon Cinnamon & Stevia drops", "quantity": "To taste", "protein_contribution_g": 0.0}
-        ],
-        "instructions": [
-            "Whisk whey isolate directly into cold Greek yogurt with a fork or mini-whisk until velvety and mousse-like.",
-            "Fold in half of the wild blueberries and Ceylon cinnamon.",
-            "Top with remaining berries, chia seeds, and raw sliced almonds for crunch."
-        ],
-        "pro_cooking_tip": "Add 1-2 tbsp of unsweetened almond milk if you prefer a silkier parfait texture over thick mousse.",
+        "pro_cooking_tip": "Do not overcook chicken breast; cook just until done, then cover and rest it for 4 minutes to ensure it remains soft and juicy.",
         "supplements": ["whey_isolate", "creatine"]
     },
     {
-        "meal_name": "Crispy Pan-Blackened Tempeh & Hempseed Macro Bowl",
-        "description": "Marinated organic tempeh triangles seared in tamari aminos, paired with edamame, steamed broccoli florets, and raw shelled hemp hearts.",
+        "meal_name": "High-Protein Paneer Bhurji with Whole Wheat Roti",
+        "description": "Crumbled low-fat paneer scrambled with chopped onions, tomatoes, green chillies, and ginger, paired with hot whole wheat rotis.",
+        "meal_type": MealType.DINNER,
+        "dietary_pref": DietaryPreference.VEGETARIAN,
+        "prep_time_minutes": 10,
+        "cook_time_minutes": 12,
+        "base_protein": 40.0,
+        "base_carbs": 48.0,
+        "base_fat": 15.0,
+        "base_cals": 487.0,
+        "ingredients": [
+            {"name": "Low-fat Paneer / Cottage Cheese", "quantity": "180g", "protein_contribution_g": 32.0},
+            {"name": "Whole Wheat Roti / Chapati", "quantity": "2 medium rotis", "protein_contribution_g": 6.0},
+            {"name": "Chopped Onion & Tomatoes", "quantity": "1 medium each", "protein_contribution_g": 1.5},
+            {"name": "Mustard Oil or Ghee", "quantity": "1 tsp (5ml)", "protein_contribution_g": 0.0},
+            {"name": "Green Chillies, Ginger, Turmeric, Coriander Leaves", "quantity": "To taste", "protein_contribution_g": 0.5}
+        ],
+        "instructions": [
+            "Crumble the low-fat paneer using your hands. Keep it aside.",
+            "Heat oil in a pan, add cumin seeds, chopped green chillies, ginger, and onions. Sauté until golden.",
+            "Add tomatoes, turmeric, coriander powder, and salt. Cook until tomatoes soften.",
+            "Add scrambled paneer, mix gently, and cook on medium heat for 3-4 minutes. Garnish with chopped fresh coriander.",
+            "Serve warm bhurji alongside freshly roasted whole wheat rotis."
+        ],
+        "pro_cooking_tip": "Avoid cooking paneer for too long after adding to the pan, otherwise it loses moisture and turns rubbery.",
+        "supplements": ["whey_isolate", "electrolytes"]
+    },
+    {
+        "meal_name": "Spiced Chana Masala (Chickpeas) with Quinoa Pulao",
+        "description": "Boiled chickpeas cooked in a homestyle tomato-onion gravy, served with a protein-rich quinoa-basmati pulao and steamed palak.",
         "meal_type": MealType.LUNCH,
         "dietary_pref": DietaryPreference.VEGAN,
         "prep_time_minutes": 10,
-        "cook_time_minutes": 12,
-        "base_protein": 44.0,
-        "base_carbs": 26.0,
-        "base_fat": 16.0,
-        "base_cals": 420.0,
+        "cook_time_minutes": 20,
+        "base_protein": 38.0,
+        "base_carbs": 64.0,
+        "base_fat": 8.0,
+        "base_cals": 480.0,
         "ingredients": [
-            {"name": "Organic Cultured Soy Tempeh", "quantity": "180g", "protein_contribution_g": 34.0},
-            {"name": "Raw Shelled Hemp Hearts", "quantity": "2 tbsp (20g)", "protein_contribution_g": 7.0},
-            {"name": "Steamed Tenderstem Broccoli", "quantity": "150g", "protein_contribution_g": 4.5},
-            {"name": "Organic Coconut Tamari & Ginger Glaze", "quantity": "1.5 tbsp", "protein_contribution_g": 1.0},
-            {"name": "Toasted White Sesame Seeds", "quantity": "1 tsp", "protein_contribution_g": 0.5}
+            {"name": "Kabuli Chana (Chickpeas, boiled)", "quantity": "1.5 cups (150g)", "protein_contribution_g": 22.0},
+            {"name": "Quinoa & Basmati Rice Blend", "quantity": "100g (cooked)", "protein_contribution_g": 7.0},
+            {"name": "Steamed Palak / Spinach", "quantity": "120g", "protein_contribution_g": 4.0},
+            {"name": "Mustard Oil", "quantity": "1 tsp (5ml)", "protein_contribution_g": 0.0},
+            {"name": "Coriander, Cumin, Turmeric, Onion-Tomato Gravy", "quantity": "To taste", "protein_contribution_g": 5.0}
         ],
         "instructions": [
-            "Slice tempeh into thin bite-sized triangles and steam for 3 minutes to remove natural bitterness.",
-            "Toss in tamari, grated ginger, and garlic powder.",
-            "Pan-sear in a non-stick skillet on medium-high until edges are deeply caramelized and crispy (4 min per side).",
-            "Serve over steamed broccoli, sprinkle heavily with raw hemp hearts and toasted sesame."
+            "Sauté cumin, chopped onions, and ginger-garlic paste in a pan with mustard oil until golden brown.",
+            "Add tomato puree, turmeric, cumin powder, chana masala spices, and cook until oil separates.",
+            "Toss in boiled chickpeas, add half a cup of water, cover and simmer on low heat for 12 minutes.",
+            "Steam palak leaves separately and sauté with a pinch of garlic.",
+            "Serve hot Chana Masala over fluffy warm quinoa-basmati pulao and garlic palak on the side."
         ],
-        "pro_cooking_tip": "Steaming tempeh before searing opens the pores, allowing the savory marinade to penetrate deep into the core.",
+        "pro_cooking_tip": "Adding a pinch of baking soda while pressure-cooking chickpeas makes them extra soft, allowing them to absorb the curry flavors much better.",
         "supplements": ["plant_isolate", "electrolytes"]
     },
     {
-        "meal_name": "Lean Grass-Fed Beef & Egg White Scramble with Avocado",
-        "description": "Ultra-lean 96/4 ground beef sautéed with bell peppers and folded into fluffy liquid egg whites, topped with fresh hass avocado.",
+        "meal_name": "Indian Egg White Bhurji Scramble with Spinach & Palak",
+        "description": "A high-protein egg white scramble loaded with fresh spinach, green chillies, onions, and turmeric, cooked in minimal oil.",
         "meal_type": MealType.BREAKFAST,
-        "dietary_pref": DietaryPreference.KETO,
-        "prep_time_minutes": 8,
-        "cook_time_minutes": 10,
-        "base_protein": 54.0,
-        "base_carbs": 6.0,
-        "base_fat": 18.0,
-        "base_cals": 405.0,
+        "dietary_pref": DietaryPreference.HIGH_PROTEIN,
+        "prep_time_minutes": 5,
+        "cook_time_minutes": 8,
+        "base_protein": 42.0,
+        "base_carbs": 8.0,
+        "base_fat": 10.0,
+        "base_cals": 290.0,
         "ingredients": [
-            {"name": "96/4 Extra Lean Ground Beef", "quantity": "160g", "protein_contribution_g": 38.0},
-            {"name": "100% Pure Liquid Egg Whites", "quantity": "150ml", "protein_contribution_g": 16.0},
-            {"name": "Fresh Hass Avocado", "quantity": "40g (1/4 avocado)", "protein_contribution_g": 0.8},
-            {"name": "Diced Red Bell Pepper & Spinach", "quantity": "60g", "protein_contribution_g": 1.2},
-            {"name": "Cumin, Sea Salt & Jalapeño", "quantity": "To taste", "protein_contribution_g": 0.0}
+            {"name": "Pure Egg Whites", "quantity": "6 large egg whites", "protein_contribution_g": 24.0},
+            {"name": "Whole Egg", "quantity": "1 large egg", "protein_contribution_g": 6.0},
+            {"name": "Fresh Spinach / Palak Leaves (chopped)", "quantity": "1.5 cups (100g)", "protein_contribution_g": 3.0},
+            {"name": "Chopped Onion & Tomato", "quantity": "80g total", "protein_contribution_g": 1.0},
+            {"name": "Green Chillies, Ginger, Turmeric", "quantity": "To taste", "protein_contribution_g": 0.0},
+            {"name": "Low-fat Paneer (grated, for garnish)", "quantity": "40g", "protein_contribution_g": 8.0}
         ],
         "instructions": [
-            "Brown lean ground beef in a skillet with cumin, sea salt, and diced bell peppers until cooked through.",
-            "Lower heat to medium-low, pour in egg whites and baby spinach.",
-            "Gently fold the mixture until egg whites are set and pillowy.",
-            "Transfer to plate and top with fresh avocado slices and hot salsa."
+            "In a bowl, whisk together egg whites, one whole egg, salt, and a pinch of turmeric.",
+            "Heat ghee or oil in a non-stick pan, add cumin, chopped ginger, green chillies, and onions. Sauté until transparent.",
+            "Add tomatoes and cook for 2 minutes. Stir in the chopped spinach leaves and let them wilt.",
+            "Pour in the egg mixture. Scramble constantly on medium-low heat until cooked and fluffy.",
+            "Grate low-fat paneer on top as garnish and serve hot."
         ],
-        "pro_cooking_tip": "Keep heat low when scrambling egg whites to avoid watery separation and achieve a fluffy, velvety mouthfeel.",
+        "pro_cooking_tip": "Scramble the eggs on medium-low heat. Cooking them too fast on high heat dries them out and turns the spinach bitter.",
         "supplements": ["electrolytes", "creatine"]
     },
     {
-        "meal_name": "Anabolic Cold-Brew Espresso & Whey Protein Sludge",
-        "description": "Double espresso blended with organic whey isolate, creamy almond butter, and ice into a thick, restorative pre/post-workout elixir.",
+        "meal_name": "Roasted Chana Sattu & Whey Protein Elixir",
+        "description": "A cooling, traditional North Indian protein shake made of roasted gram flour (Sattu) blended with whey isolate, mint, and roasted cumin.",
         "meal_type": MealType.POST_WORKOUT,
         "dietary_pref": DietaryPreference.HIGH_PROTEIN,
         "prep_time_minutes": 3,
         "cook_time_minutes": 0,
-        "base_protein": 42.0,
-        "base_carbs": 12.0,
-        "base_fat": 8.0,
-        "base_cals": 290.0,
+        "base_protein": 46.0,
+        "base_carbs": 24.0,
+        "base_fat": 6.0,
+        "base_cals": 334.0,
         "ingredients": [
-            {"name": "Cold-Brew Espresso Concentrate", "quantity": "150ml", "protein_contribution_g": 0.5},
-            {"name": "Vanilla Chocolate Swirl Whey Isolate", "quantity": "40g (1.3 scoops)", "protein_contribution_g": 36.0},
-            {"name": "Unsweetened Almond Milk", "quantity": "150ml", "protein_contribution_g": 1.0},
-            {"name": "Raw Almond Butter", "quantity": "10g", "protein_contribution_g": 2.2},
-            {"name": "Crushed Ice & Himalayan Pink Salt", "quantity": "1 cup", "protein_contribution_g": 0.0}
+            {"name": "Roasted Chana Sattu (Gram Flour)", "quantity": "30g", "protein_contribution_g": 6.0},
+            {"name": "Vanilla / Unflavored Whey Isolate", "quantity": "35g (1.2 scoops)", "protein_contribution_g": 31.0},
+            {"name": "Chilled Curd / Dahi (for thickness)", "quantity": "3 tbsp (50g)", "protein_contribution_g": 3.0},
+            {"name": "Roasted Cumin Powder, Black Salt, Mint Leaves, Lemon Juice", "quantity": "To taste", "protein_contribution_g": 0.0},
+            {"name": "Grated Paneer (optional, to stir-in)", "quantity": "30g", "protein_contribution_g": 6.0}
         ],
         "instructions": [
-            "Add cold-brew espresso, almond milk, and whey isolate into a high-speed blender.",
-            "Add almond butter, a pinch of pink salt (for electrolyte absorption), and 1 cup of crushed ice.",
-            "Blend on high for 45 seconds until thick and frosty.",
-            "Pour into a chilled tumbler and enjoy immediately post-workout."
+            "In a shaker or blender, combine sattu flour, whey isolate, curd, and chilled water (300ml).",
+            "Add roasted cumin powder, black salt, a squeeze of fresh lemon juice, and finely chopped mint leaves.",
+            "Shake vigorously or blend for 30 seconds until completely smooth and lump-free.",
+            "Pour into a tall glass, stir in grated paneer if desired for extra texture, and serve cold."
         ],
-        "pro_cooking_tip": "The pinch of sodium enhances the sweetness of the whey while expediting glucose and amino acid cellular transport.",
+        "pro_cooking_tip": "Sattu acts as a natural prebiotic and coolant, making it highly effective for gut health and digestion on high-protein diets.",
         "supplements": ["creatine", "whey_isolate"]
     }
 ]
+
 
 
 def _build_offline_recipe(request: MealPlanRequest) -> RecipeModel:
@@ -364,8 +344,11 @@ def generate_high_protein_meal(
         client = genai.Client(api_key=effective_api_key)
 
         prompt = f"""
-You are an elite sports nutritionist and Michelin-trained chef.
-Create a hyper-optimized, high-protein recipe matching these EXACT targets:
+You are an elite sports nutritionist and Michelin-trained chef specializing in Indian cuisine.
+Create a hyper-optimized, high-protein recipe matching these EXACT targets, tailored for an Indian household:
+- Use ingredients, vegetables, fruits, dals, lentils, and paneer commonly found in Indian kitchens.
+- Use traditional Indian spices (turmeric, cumin, coriander, garam masala, chili) and simple cooking steps (pressure cooking, pan-searing, boiling).
+- Ensure all ingredients are easily accessible in a typical Indian supermarket or local vegetable market.
 - Meal Type: {request.meal_type.value}
 - Dietary Preference: {request.dietary_pref.value}
 - Target Protein: ~{request.target_protein_g} grams (DO NOT UNDERDELIVER PROTEIN)

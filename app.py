@@ -307,10 +307,10 @@ with st.sidebar:
 
 
 # Main Tabs Navigation
-tab_macro, tab_meals, tab_pro = st.tabs([
+# Main Tabs Navigation
+tab_macro, tab_meals = st.tabs([
     "📊 1. Macro & Metabolism Tracker",
     "🥗 2. AI High-Protein Meal Builder",
-    "💎 3. Pro Tier & Monetization Preview",
 ])
 
 
@@ -328,13 +328,14 @@ with tab_macro:
     if saved_profile:
         prof_card_col, prof_btn_col = st.columns([5.2, 1.2])
         with prof_card_col:
+            user_display_name = saved_profile.name if (saved_profile.name and len(saved_profile.name.strip()) > 0) else "Guest User"
             st.markdown(textwrap.dedent(f"""
                 <div class="glass-card" style="border-left: 4px solid #10B981; margin-bottom: 0; padding: 18px 22px;">
                     <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
                         <div style="text-align: left;">
                             <span class="metric-pill pill-green" style="margin-bottom: 6px;">👤 ACTIVE USER PROFILE</span>
                             <div style="font-size: 1.25rem; font-weight: 700; color: #F0FDFA; margin-top: 4px;">
-                                swapnilshrivastava <span style="font-weight: 400; color: #94A3B8; font-size: 0.95rem;">• {saved_profile.age} yrs • {saved_profile.gender.upper()}</span>
+                                {user_display_name} <span style="font-weight: 400; color: #94A3B8; font-size: 0.95rem;">• {saved_profile.age} yrs • {saved_profile.gender.upper()}</span>
                             </div>
                             <div style="font-size: 0.9rem; color: #94A3B8; margin-top: 6px;">
                                 📐 Weight: <b>{saved_profile.weight_kg} kg</b> &nbsp;|&nbsp; 
@@ -356,8 +357,20 @@ with tab_macro:
             if st.button("✏️ Edit Profile", key="btn_edit_profile", use_container_width=True):
                 st.session_state.edit_profile = not st.session_state.edit_profile
                 st.rerun()
+
+    # New to PULSE AI? Quick Guided Tour & Core Rules
+    with st.expander("💡 New to PULSE AI? Quick Guided Tour & Core Rules", expanded=not bool(saved_profile)):
+        st.markdown(textwrap.dedent("""
+            Welcome to **PULSE AI**, your high-protein metabolic health companion tailored for Indian kitchens! Here are the simple guidelines to get the most out of your journey:
+            
+            1. 👤 **Set Up Your Metrics**: Click the **✏️ Edit Profile** button above to configure your name, weight, height, age, and activity. It automatically calculates your optimal BMR, TDEE, Calories, and Protein limits.
+            2. 🍳 **Focus on the Leucine Trigger**: To preserve muscle and burn fat, aim to get at least **30g of protein in your main meals** (labeled as **mTOR Active** in the per-meal tracker).
+            3. 🇮🇳 **Use Indian Whole Foods**: Cook delicious, high-protein meals utilizing daily Indian household ingredients (like low-fat paneer, sattu, curd/dahi, egg whites, chicken breast, chickpeas, dals, and basmati rice) recommended under the **AI High-Protein Meal Builder** tab.
+            4. 💧 **Hydration & Log Meals**: Keep track of your day by clicking **Log This Meal** in the builder tab or updating your daily water intake below.
+        """))
             
     # Defaults from DB if available
+    def_name = saved_profile.name if (saved_profile and saved_profile.name) else "Guest"
     def_weight = saved_profile.weight_kg if saved_profile else 75.0
     def_height = saved_profile.height_cm if saved_profile else 178.0
     def_age = saved_profile.age if saved_profile else 28
@@ -371,6 +384,7 @@ with tab_macro:
         col_u1, col_u2, col_u3 = st.columns([1.2, 1.2, 1])
         
         with col_u1:
+            name_input = st.text_input("Full Name", value=def_name)
             weight = st.number_input("Body Weight (kg)", min_value=30.0, max_value=350.0, value=min(350.0, max(30.0, float(def_weight))), step=0.5)
             height = st.number_input("Height (cm)", min_value=100.0, max_value=260.0, value=min(260.0, max(100.0, float(def_height))), step=1.0)
             age = st.number_input("Age (years)", min_value=12, max_value=115, value=min(115, max(12, int(def_age))), step=1)
@@ -441,6 +455,7 @@ with tab_macro:
             activity_level=activity_choice,
             goal=goal_choice,
             protein_multiplier=protein_mult,
+            name=name_input,
             bmr=targets.bmr,
             tdee=targets.tdee,
             target_calories=targets.target_calories,
@@ -846,112 +861,3 @@ with tab_meals:
 
 
 
-# ==========================================
-# TAB 3: PRO TIER & MONETIZATION PREVIEW
-# ==========================================
-with tab_pro:
-    st.markdown("### 💎 Unlock Full Potential with PULSE Pro & Elite")
-    st.caption("Scale your physical transformation with continuous biomarker telemetry, AI voice coaching, and automated grocery fulfillment.")
-    
-    # Billing Toggle
-    bill_col1, bill_col2 = st.columns([1.5, 3.5])
-    with bill_col1:
-        billing_cycle = st.radio(
-            "Select Billing Interval",
-            options=["Monthly Billing", "Annual Billing (25% OFF)"],
-            horizontal=True
-        )
-    
-    is_annual = "Annual" in billing_cycle
-    pro_main_price = "$11.25" if is_annual else "$14.99"
-    pro_subtext = "per month, billed annually ($135/yr)" if is_annual else "per month, billed monthly"
-    
-    elite_main_price = "$29.99" if is_annual else "$39.99"
-    elite_subtext = "per month, billed annually ($359/yr)" if is_annual else "per month, billed monthly"
-
-    col_t1, col_t2, col_t3 = st.columns(3)
-
-    # 1. Free Starter Tier
-    with col_t1:
-        st.markdown("""
-        <div class="glass-card" style="min-height: 380px; margin-bottom: 8px;">
-            <div style="display: flex; justify-content: space-between; align-items: center; min-height: 28px;">
-                <span class="metric-pill pill-blue">STARTER</span>
-                <span style="color: #9CA3AF; font-size: 0.8rem;">Forever Free</span>
-            </div>
-            <div style="font-size: 2.2rem; font-weight: 800; color: #F9FAFB; margin: 10px 0 2px 0;">$0</div>
-            <div style="color: #9CA3AF; font-size: 0.85rem; min-height: 20px; margin-bottom: 16px;">Free lifetime access</div>
-            <div style="border-top: 1px solid rgba(255,255,255,0.08); padding-top: 14px; font-size: 0.9rem; line-height: 1.8;">
-                <div>✅ Scientific Mifflin-St Jeor TDEE</div>
-                <div>✅ 1.6–2.2g/kg Protein Targeter</div>
-                <div>✅ 5 AI Meal Generations / Day</div>
-                <div>✅ Basic Mindset Book Quotes</div>
-                <div style="color: #6B7280;">❌ AI Voice Bio-Coach</div>
-                <div style="color: #6B7280;">❌ Auto-Grocery Delivery Export</div>
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
-        st.button("Current Active Plan", key="btn_free_plan", use_container_width=True, disabled=True)
-
-    # 2. PULSE Pro Tier (Central Column)
-    with col_t2:
-        discount_badge = "<span class='metric-pill pill-amber'>25% OFF</span>" if is_annual else "<span style='color:#9CA3AF; font-size:0.8rem;'>Flexible Monthly</span>"
-        st.markdown(f"""
-        <div class="glass-card" style="min-height: 380px; border: 2px solid #10B981; margin-bottom: 8px; background: linear-gradient(180deg, rgba(16, 185, 129, 0.12) 0%, rgba(17, 24, 39, 0.85) 100%);">
-            <div style="display: flex; justify-content: space-between; align-items: center; min-height: 28px;">
-                <span class="metric-pill pill-green">MOST POPULAR</span>
-                {discount_badge}
-            </div>
-            <div style="font-size: 2.2rem; font-weight: 800; color: #34D399; margin: 10px 0 2px 0;">{pro_main_price} <span style="font-size: 1rem; color: #9CA3AF; font-weight: 500;">/ mo</span></div>
-            <div style="color: #34D399; font-size: 0.85rem; min-height: 20px; margin-bottom: 16px;">{pro_subtext}</div>
-            <div style="border-top: 1px solid rgba(255,255,255,0.08); padding-top: 14px; font-size: 0.9rem; line-height: 1.8;">
-                <div>✅ <b>Unlimited</b> Gemini 2.5 Flash Chef</div>
-                <div>✅ <b>Full Book RAG</b> Semantic Retrieval</div>
-                <div>✅ 🛒 <b>1-Click Instacart / Amazon Fresh</b></div>
-                <div>✅ 🧬 <b>Biomarker & Bloodwork Sync</b></div>
-                <div>✅ Custom Supplement Stacking Engine</div>
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
-        if st.button("🚀 Upgrade to PULSE Pro", key="btn_pro_upgrade", use_container_width=True, type="primary"):
-            st.balloons()
-            st.success("🎉 Redirecting to Stripe Secure Checkout... (Simulation)")
-
-    # 3. Longevity Elite Tier
-    with col_t3:
-        elite_badge = "<span class='metric-pill pill-amber'>25% OFF</span>" if is_annual else "<span style='color:#9CA3AF; font-size:0.8rem;'>All-Inclusive</span>"
-        st.markdown(f"""
-        <div class="glass-card" style="min-height: 380px; border: 1px solid #8B5CF6; margin-bottom: 8px; background: linear-gradient(180deg, rgba(139, 92, 246, 0.12) 0%, rgba(17, 24, 39, 0.85) 100%);">
-            <div style="display: flex; justify-content: space-between; align-items: center; min-height: 28px;">
-                <span class="metric-pill pill-purple">LONGEVITY ELITE</span>
-                {elite_badge}
-            </div>
-            <div style="font-size: 2.2rem; font-weight: 800; color: #C084FC; margin: 10px 0 2px 0;">{elite_main_price} <span style="font-size: 1rem; color: #9CA3AF; font-weight: 500;">/ mo</span></div>
-            <div style="color: #C084FC; font-size: 0.85rem; min-height: 20px; margin-bottom: 16px;">{elite_subtext}</div>
-            <div style="border-top: 1px solid rgba(255,255,255,0.08); padding-top: 14px; font-size: 0.9rem; line-height: 1.8;">
-                <div>✅ Everything in PULSE Pro</div>
-                <div>✅ 🎙️ <b>24/7 AI Voice Bio-Coach</b></div>
-                <div>✅ 🩺 <b>Continuous Glucose (CGM) Sync</b></div>
-                <div>✅ 👨‍⚕️ <b>Monthly 1-on-1 Nutritionist Review</b></div>
-                <div>✅ Priority Concierge VIP Support</div>
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
-        if st.button("👑 Join Longevity Elite", key="btn_elite_upgrade", use_container_width=True):
-            st.toast("⚡ Elite Concierge Onboarding Activated!", icon="👑")
-
-    st.markdown("---")
-    
-    # Promo Code Tester
-    with st.expander("🏷️ Have a Partner / Creator Promo Code?"):
-        promo_col1, promo_col2 = st.columns([3, 1])
-        with promo_col1:
-            promo = st.text_input("Enter Promo Code", placeholder="e.g. ATTIA20, GOGGINS, ATOMIC")
-        with promo_col2:
-            st.write("")
-            st.write("")
-            if st.button("Apply Code"):
-                if promo.upper() in ["ATTIA20", "GOGGINS", "ATOMIC", "PULSE"]:
-                    st.success(f"🎉 Code '{promo.upper()}' applied! Additional 20% discount activated.")
-                else:
-                    st.error("Invalid or expired promo code.")
