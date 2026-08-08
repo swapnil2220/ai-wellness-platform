@@ -1,94 +1,112 @@
-# PULSE AI — High-Protein & Longevity Wellness Platform
+# 🌿 PULSE AI | High-Protein Metabolism & Longevity Platform
 
-A production-ready, modular MVP combining scientific macronutrient distribution (1.6–2.2g/kg protein targets), Gemini 2.5 Flash culinary meal generation with affiliate supplement links, in-memory TF-IDF vector RAG indexing top wellness literature (*Atomic Habits*, *Outlive*, *Can't Hurt Me*, *The Salt Fix*, *Mindset*, *Why We Sleep*), and an interactive multi-tab Streamlit dashboard.
-
----
-
-## 🚀 Architecture & Key Features
-
-### 1. User Profile & Scientific Macro Engine (`core/protein_engine.py`)
-- **Mifflin-St Jeor Equation** with gender, weight, height, and age baselines.
-- **Activity & Goal Adjustments**: Sedentary to Extra Active multipliers; Caloric deficit (-20% fat loss), surplus (+10% muscle gain), or maintenance.
-- **1.6g–2.2g/kg Protein Protocol**: Preserves lean body mass, stimulates Diet-Induced Thermogenesis (TEF), and satisfies the per-meal ~2.5g–3.5g leucine trigger threshold (mTOR activation).
-- **Interactive Plotly Visualizations**: Calorie/Macro donut breakdown and per-meal allocation bars.
-
-### 2. AI High-Protein Meal Generator (`core/meal_planner.py`)
-- **Google GenAI SDK Integration**: Utilizes `gemini-2.5-flash` with structured Pydantic schema validation.
-- **Resilient Offline Fallback Engine**: If `GEMINI_API_KEY` is not provided or API is offline, an intelligent recipe engine scales chef-crafted recipes to exact remaining protein and calorie budgets.
-- **Affiliate Supplement Integrations**: Recommendations for Native Whey Isolate, Creapure® Creatine Monohydrate, Plant Isolate, and Electrolytes with dosage guidance.
-- **One-Click Daily Logging**: Instantly save generated meals into the local SQLite database.
-
-### 3. Mindset & Book Insights RAG Agent (`core/book_rag.py`)
-- **In-Memory Vector Search**: TF-IDF and Cosine Similarity retrieval over curated knowledge from:
-  - *Atomic Habits* (James Clear)
-  - *Outlive: The Science and Art of Longevity* (Dr. Peter Attia)
-  - *Can't Hurt Me* (David Goggins)
-  - *The Salt Fix* (Dr. James DiNicolantonio)
-  - *Mindset* (Carol Dweck)
-  - *Why We Sleep* (Matthew Walker)
-  - *Deep Work* (Cal Newport)
-- **AI Micro-Reflection & Cognitive Coach**: Generates a 3-step immediate action plan and mental mantra when facing dietary friction, workout hesitation, or late-night cravings.
-
-### 4. Monetization & Pro Tier Preview (`app.py` - Tab 4)
-- **Tier Comparison Grid**: Starter (Free) vs. PULSE Pro ($14.99/mo) vs. Longevity Elite ($39.99/mo).
-- **Pro Feature Spotlights**: AI Voice Bio-Coach, Biomarker & Bloodwork Sync, Automated Instacart/Amazon Fresh Grocery Export, 1-on-1 Nutritionist sync.
-- **Interactive Discount & Promo Code Simulator**.
+PULSE AI is a production-grade, modular wellness platform combining clinical metabolism science, generative AI culinary recipe synthesis, and a cognitive mindset RAG agent. The codebase includes a **Python/Streamlit Web Dashboard** and a **cross-platform Flutter application**, both styled in a soothing **Emerald, Mint, and Cyan** glassmorphism theme.
 
 ---
 
-## 🛠️ Quickstart & Local Setup
+## 🧬 Scientific & Technical Nuances
 
-### 1. Virtual Environment & Dependencies
-```bash
-# Clone or navigate to the directory
-cd /Users/swapnilshrivastava/.gemini/antigravity/scratch/ai-wellness-platform
+### 1. Metabolic & Macro Engine
+The core calculations are built on clinical nutrition and longevity science (Medicine 3.0 principles):
+*   **Basal Metabolic Rate (BMR)**: Calculated using the **Mifflin-St Jeor Equation** for maximum clinical accuracy over older Harris-Benedict formulas:
+    $$\text{BMR (Male)} = 10 \times \text{weight (kg)} + 6.25 \times \text{height (cm)} - 5 \times \text{age (y)} + 5$$
+    $$\text{BMR (Female)} = 10 \times \text{weight (kg)} + 6.25 \times \text{height (cm)} - 5 \times \text{age (y)} - 161$$
+*   **Total Daily Energy Expenditure (TDEE)**: Computed by applying physical activity multipliers (Sedentary `1.2x` to Heavy Athlete `1.9x`).
+*   **The Leucine Trigger & MPS**: Muscle Protein Synthesis (MPS) is maximally stimulated through the **mTORC1** pathway. To cross the threshold, a meal must contain **2.5g–3.5g of Leucine** (typically found in **28g–35g of High Biological Value protein**). The platform tracks this "Leucine Trigger" for every meal to prevent sarcopenia and preserve lean body mass.
+*   **Protein Satiety Standard**: Daily targets enforce **1.6g to 2.2g of protein per kg of bodyweight** to leverage the thermic effect of food (TEF) and defend lean mass during caloric deficits.
 
-# Activate Python 3.12 virtual environment
-source venv/bin/activate
+### 2. Generative AI Chef & Affiliate Scaling
+*   **Google GenAI SDK**: Connects to `gemini-2.5-flash` using structured JSON schema validation.
+*   **Offline Fallback Synthesizer**: If no API key is present or the rate limit is hit, a deterministic scaling engine processes a structured local catalog of chicken, salmon, yogurt, and tempeh dishes, scaling ingredients proportionally to match the exact remaining protein/calorie targets.
+*   **Ergogenic Affiliate Integration**: Recommends customized clinical supplements based on the dish type (e.g., Creatine Monohydrate for power workouts, Electrolytes for pre-hydration, Omega-3s with fish dishes).
 
-# Install dependencies
-pip install -r requirements.txt
-```
+### 3. Mindset RAG (Retrieval-Augmented Generation)
+*   **In-Memory Semantic Search**: Vector indexing maps text queries to concept nodes using TF-IDF term frequency and cosine distance similarity.
+*   **Indexed Seminal Literature**: Outlive (Peter Attia), Atomic Habits (James Clear), Can't Hurt Me (David Goggins), Mindset (Carol Dweck), The Salt Fix (Dr. DiNicolantonio), and Why We Sleep (Matthew Walker).
+*   **AI Cognitive Reframing Coach**: Processes user friction (e.g., late-night cravings, workout fatigue) and generates a 3-step immediate action protocol anchored by literature-backed habit-stacking, friction-reduction, and accountability mirrors.
 
-### 2. Environment Variables
-Copy `.env.example` to `.env`:
-```bash
-cp .env.example .env
-```
-*(Optional: Add your `GEMINI_API_KEY=...` to enable live Gemini 2.5 Flash generations. If left blank, the app seamlessly runs in offline smart synthesizer mode).*
+---
 
-### 3. Run the Unit Test Suite
-```bash
-pytest tests/ -v
-```
+## 🛠️ The Tech Stack
 
-### 4. Launch the Streamlit Dashboard
-```bash
-streamlit run app.py --server.port 8501
-```
-Open [http://localhost:8501](http://localhost:8501) in your browser.
+### 🐍 Backend & Web App (Python)
+*   **Streamlit**: Highly customized with glassmorphism CSS overlays, interactive Plotly charts, collapsible configurations, and responsive progress bars.
+*   **SQLAlchemy ORM**: Connects to a local SQLite instance with schema migrations, caching session generators, and UTC-timestamped entries.
+*   **Plotly Express / Graph Objects**: Custom HSL-matched donut charts and double-axis per-meal calorie/protein charts.
+
+### 📱 Mobile & Desktop App (Flutter & Dart)
+*   **Layered Architecture**: Strictly follows the UI -> Controller/Provider -> Data/Service separation.
+*   **ChangeNotifier State Management**: Provides real-time reactive state updates across profile configuration, meal logging, and bookmarking.
+*   **Custom Graphics Canvas**: Implements a custom `CustomPainter` to draw anti-aliased macro calorie breakdown donut charts.
+*   **Responsive Shell**: Automatically switches between a sidebar `NavigationRail` (desktop/tablets) and a bottom `NavigationBar` (mobile).
 
 ---
 
 ## 📂 Project Directory Structure
+
 ```
 ai-wellness-platform/
-├── app.py                      # Main Streamlit Multi-Tab Dashboard
+├── app.py                         # Python Streamlit Web Dashboard
 ├── core/
-│   ├── __init__.py
-│   ├── protein_engine.py       # Macro, TDEE, & 1.6-2.2g/kg Protein Calculation
-│   ├── meal_planner.py         # Gemini 2.5 Flash Meal Generator & Fallback Engine
-│   └── book_rag.py             # Vector RAG Semantic Engine over Wellness Books
+│   ├── protein_engine.py          # Mifflin-St Jeor, BMR, TDEE, & Leucine algorithms
+│   ├── meal_planner.py            # Gemini 2.5 Flash SDK wrapper & fallback engine
+│   └── book_rag.py                # Cosine vector retrieval & RAG coach
 ├── database/
-│   ├── __init__.py
-│   └── db.py                   # SQLAlchemy SQLite ORM & CRUD Repository
-├── tests/
-│   ├── __init__.py
-│   ├── test_protein.py         # Unit tests for macro & TDEE formulas
-│   ├── test_meal_planner.py    # Unit tests for recipe generation & schema
-│   ├── test_book_rag.py        # Unit tests for vector search & reflections
-│   └── test_db.py              # Unit tests for database models & progress tracking
-├── .env.example                # Environment variables template
-├── requirements.txt            # Python dependencies
-└── README.md                   # Documentation & Setup guide
+│   └── db.py                      # SQLAlchemy ORM, SQLite schema, & transaction layers
+├── flutter_app/
+│   ├── pubspec.yaml               # Flutter pub dependency manager
+│   ├── lib/
+│   │   ├── main.dart              # Flutter application entrypoint
+│   │   ├── theme/
+│   │   │   └── app_theme.dart     # Soothing green & cyan glassmorphism variables
+│   │   ├── models/                # Domain data representations
+│   │   ├── services/              # Clean Dart ports of calculation engines & RAG
+│   │   ├── state/
+│   │   │   └── wellness_provider.dart # ChangeNotifier reactive dispatcher
+│   │   ├── widgets/               # Reusable recipe cards, progress painters, badges
+│   │   └── screens/               # Tracker, Builder, RAG, and Pro pricing views
+│   └── test/                      # Dart unit test coverage
+├── tests/                         # Pytest integration & unit testing
+├── requirements.txt               # Python package manifest
+└── README.md                      # Complete system documentation
 ```
+
+---
+
+## ⚡ Setup & Run Guidelines
+
+### 🐍 running the Python Web Dashboard
+1.  **Initialize Environment & Install Packages**:
+    ```bash
+    source venv/bin/activate
+    pip install -r requirements.txt
+    ```
+2.  **Add API Keys (Optional)**:
+    Create a `.env` file from the template:
+    ```bash
+    cp .env.example .env
+    ```
+    Insert your `GEMINI_API_KEY=...` to enable live AI recipe generation.
+3.  **Run Pytest Verification**:
+    ```bash
+    pytest tests/ -v
+    ```
+4.  **Boot the Dashboard**:
+    ```bash
+    streamlit run app.py --server.port 8501
+    ```
+
+### 📱 running the Flutter Application
+1.  **Retrieve Dependencies**:
+    ```bash
+    cd flutter_app
+    flutter pub get
+    ```
+2.  **Run Dart Unit Tests**:
+    ```bash
+    flutter test
+    ```
+3.  **Launch the App**:
+    ```bash
+    flutter run
+    ```
