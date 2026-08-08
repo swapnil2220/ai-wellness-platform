@@ -36,11 +36,6 @@ from core.meal_planner import (
     generate_high_protein_meal,
     AFFILIATE_CATALOG,
 )
-from core.book_rag import (
-    BookRAGSystem,
-    BookInsight,
-    ReflectionResponse,
-)
 from database.db import (
     get_session,
     init_db,
@@ -64,13 +59,6 @@ st.set_page_config(
 # Initialize database
 init_db()
 
-# Initialize RAG System in Streamlit Cache
-@st.cache_resource
-def get_rag_engine():
-    return BookRAGSystem()
-
-rag_engine = get_rag_engine()
-
 # Custom CSS for modern soothing green and cyan theme
 st.markdown("""
 <style>
@@ -82,66 +70,66 @@ st.markdown("""
 
     /* Calming Slate Teal Background */
     .stApp {
-        background: radial-gradient(circle at 15% 15%, #0B1922 0%, #061017 60%, #03080C 100%);
+        background: radial-gradient(circle at 15% 15%, #0B131A 0%, #070D12 70%, #04080B 100%);
         color: #F0FDFA;
     }
 
     /* Soothing Hero Header */
     .hero-banner {
-        background: linear-gradient(135deg, rgba(16, 185, 129, 0.14) 0%, rgba(6, 182, 212, 0.16) 50%, rgba(8, 145, 178, 0.12) 100%);
-        border: 1px solid rgba(6, 182, 212, 0.25);
+        background: linear-gradient(135deg, rgba(16, 185, 129, 0.07) 0%, rgba(6, 182, 212, 0.08) 50%, rgba(8, 145, 178, 0.05) 100%);
+        border: 1px solid rgba(6, 182, 212, 0.14);
         border-radius: 20px;
         padding: 26px 32px;
         margin-bottom: 24px;
         backdrop-filter: blur(16px);
-        box-shadow: 0 12px 36px -12px rgba(6, 182, 212, 0.2);
+        box-shadow: 0 8px 32px -8px rgba(6, 182, 212, 0.08);
     }
     .hero-title {
         font-size: 2.3rem;
         font-weight: 800;
-        background: linear-gradient(120deg, #34D399 0%, #22D3EE 50%, #06B6D4 100%);
+        background: linear-gradient(120deg, #A7F3D0 0%, #A5F3FC 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         margin-bottom: 6px;
         letter-spacing: -0.5px;
     }
     .hero-subtitle {
-        color: #99F6E4;
+        color: #94A3B8;
         font-size: 1.05rem;
         font-weight: 400;
     }
 
     /* Soothing Glass Cards */
     .glass-card {
-        background: rgba(13, 28, 36, 0.72);
-        border: 1px solid rgba(6, 182, 212, 0.18);
+        background: rgba(14, 25, 33, 0.85);
+        border: 1px solid rgba(16, 185, 129, 0.12);
         border-radius: 18px;
         padding: 22px 26px;
         margin-bottom: 16px;
         backdrop-filter: blur(14px);
-        transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.25s ease, box-shadow 0.25s ease;
+        transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
     }
     .glass-card:hover {
-        border-color: rgba(52, 211, 153, 0.45);
-        box-shadow: 0 12px 30px -8px rgba(16, 185, 129, 0.18);
-        transform: translateY(-2px);
+        border-color: rgba(16, 185, 129, 0.25);
+        box-shadow: 0 10px 24px -6px rgba(16, 185, 129, 0.1);
+        transform: translateY(-1px);
     }
 
     /* Custom KPI Metric Cards */
     .kpi-card {
-        background: rgba(18, 38, 48, 0.65);
-        border: 1px solid rgba(6, 182, 212, 0.2);
+        background: rgba(15, 28, 37, 0.78);
+        border: 1px solid rgba(6, 182, 212, 0.12);
         border-radius: 16px;
         padding: 16px 20px;
         text-align: left;
         backdrop-filter: blur(10px);
-        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        transition: all 0.2s ease;
     }
     .kpi-card:hover {
-        border-color: rgba(16, 185, 129, 0.4);
-        background: rgba(18, 38, 48, 0.8);
-        transform: translateY(-2px);
-        box-shadow: 0 8px 24px rgba(16, 185, 129, 0.12);
+        border-color: rgba(16, 185, 129, 0.28);
+        background: rgba(15, 28, 37, 0.88);
+        transform: translateY(-1px);
+        box-shadow: 0 6px 18px rgba(16, 185, 129, 0.06);
     }
     .kpi-title {
         font-size: 0.8rem;
@@ -158,33 +146,31 @@ st.markdown("""
     }
     .kpi-subtext {
         font-size: 0.82rem;
-        color: #34D399;
+        color: #A7F3D0;
         font-weight: 500;
         margin-top: 4px;
     }
 
     /* Custom Progress Bars */
     .progress-container {
-        background: rgba(255, 255, 255, 0.05);
+        background: rgba(255, 255, 255, 0.04);
         border-radius: 9999px;
         height: 8px;
         width: 100%;
         margin-top: 8px;
         overflow: hidden;
-        border: 1px solid rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.02);
     }
     .progress-bar {
         border-radius: 9999px;
         height: 100%;
-        transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        transition: width 0.5s ease;
     }
     .progress-bar-protein {
-        background: linear-gradient(90deg, #10B981 0%, #06D6A0 100%);
-        box-shadow: 0 0 10px rgba(16, 185, 129, 0.4);
+        background: linear-gradient(90deg, #10B981 0%, #34D399 100%);
     }
     .progress-bar-calories {
-        background: linear-gradient(90deg, #06B6D4 0%, #22D3EE 100%);
-        box-shadow: 0 0 10px rgba(6, 182, 212, 0.4);
+        background: linear-gradient(90deg, #0891B2 0%, #22D3EE 100%);
     }
 
     /* Soothing Metric Badges */
@@ -197,18 +183,19 @@ st.markdown("""
         text-transform: uppercase;
         letter-spacing: 0.5px;
     }
-    .pill-green { background: rgba(16, 185, 129, 0.18); color: #34D399; border: 1px solid rgba(52, 211, 153, 0.45); }
-    .pill-blue, .pill-cyan { background: rgba(6, 182, 212, 0.18); color: #22D3EE; border: 1px solid rgba(34, 211, 238, 0.45); }
-    .pill-purple { background: rgba(13, 148, 136, 0.22); color: #5EEAD4; border: 1px solid rgba(94, 234, 212, 0.45); }
-    .pill-amber { background: rgba(20, 184, 166, 0.25); color: #A7F3D0; border: 1px solid rgba(167, 243, 208, 0.45); }
+    .pill-green { background: rgba(16, 185, 129, 0.1); color: #A7F3D0; border: 1px solid rgba(52, 211, 153, 0.25); }
+    .pill-blue, .pill-cyan { background: rgba(6, 182, 212, 0.1); color: #A5F3FC; border: 1px solid rgba(34, 211, 238, 0.25); }
+    .pill-purple { background: rgba(13, 148, 136, 0.1); color: #99F6E4; border: 1px solid rgba(94, 234, 212, 0.25); }
+    .pill-amber { background: rgba(20, 184, 166, 0.1); color: #E6FDF9; border: 1px solid rgba(167, 243, 208, 0.25); }
 
-    /* Recipe & Quote Cards */
+    /* Recipe & Cards */
     .recipe-header {
         font-size: 1.45rem;
         font-weight: 700;
         color: #F0FDFA;
         margin-bottom: 8px;
     }
+
     .quote-box {
         border-left: 3px solid #06B6D4;
         padding-left: 16px;
@@ -249,10 +236,10 @@ st.markdown("""
         border-color: rgba(6, 182, 212, 0.35);
     }
     .stTabs [aria-selected="true"] {
-        background: linear-gradient(135deg, rgba(16, 185, 129, 0.28), rgba(6, 182, 212, 0.28)) !important;
-        color: #22D3EE !important;
-        border: 1px solid rgba(34, 211, 238, 0.6) !important;
-        box-shadow: 0 4px 16px -4px rgba(6, 182, 212, 0.3);
+        background: linear-gradient(135deg, rgba(16, 185, 129, 0.14), rgba(6, 182, 212, 0.14)) !important;
+        color: #A5F3FC !important;
+        border: 1px solid rgba(34, 211, 238, 0.35) !important;
+        box-shadow: none !important;
     }
 
     /* Primary Buttons with Mint & Cyan Gradient */
@@ -263,15 +250,15 @@ st.markdown("""
         transition: all 0.2s ease;
     }
     .primary-btn button, button[kind="primary"] {
-        background: linear-gradient(135deg, #10B981 0%, #0891B2 100%) !important;
+        background: linear-gradient(135deg, #059669 0%, #0891B2 100%) !important;
         color: #FFFFFF !important;
-        box-shadow: 0 4px 16px rgba(6, 182, 212, 0.35) !important;
+        box-shadow: 0 4px 14px rgba(8, 145, 178, 0.15) !important;
     }
 
     /* Cleaner Streamlit Expander header styles */
     .st-emotion-cache-1h9us5a, .st-emotion-cache-eq1h2b {
-        background-color: rgba(13, 28, 36, 0.4) !important;
-        border: 1px solid rgba(6, 182, 212, 0.15) !important;
+        background-color: rgba(15, 28, 37, 0.6) !important;
+        border: 1px solid rgba(16, 185, 129, 0.12) !important;
         border-radius: 12px !important;
     }
 </style>
@@ -284,12 +271,11 @@ st.markdown("""
     <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
         <div>
             <div class="hero-title">🌿 PULSE AI</div>
-            <div class="hero-subtitle">High-Protein Metabolic Engine • Gemini Chef • Soothing Mindset RAG</div>
+            <div class="hero-subtitle">High-Protein Metabolic Engine & Culinary AI Chef</div>
         </div>
         <div style="margin-top: 8px;">
             <span class="metric-pill pill-green">● 1.6–2.2g/kg Protein Protocol</span>
-            <span class="metric-pill pill-cyan">● Gemini 2.5 Flash</span>
-            <span class="metric-pill pill-purple">● Medicine 3.0 Science</span>
+            <span class="metric-pill pill-cyan">● Gemini 2.5 Flash Chef</span>
         </div>
     </div>
 </div>
@@ -321,11 +307,10 @@ with st.sidebar:
 
 
 # Main Tabs Navigation
-tab_macro, tab_meals, tab_rag, tab_pro = st.tabs([
+tab_macro, tab_meals, tab_pro = st.tabs([
     "📊 1. Macro & Metabolism Tracker",
     "🥗 2. AI High-Protein Meal Builder",
-    "📖 3. Mindset & Book Insights RAG",
-    "💎 4. Pro Tier & Monetization Preview",
+    "💎 3. Pro Tier & Monetization Preview",
 ])
 
 
@@ -335,32 +320,43 @@ tab_macro, tab_meals, tab_rag, tab_pro = st.tabs([
 with tab_macro:
     db_session = get_session()
     saved_profile = get_latest_profile(db_session)
-    
+    # Initialize edit profile state
+    if "edit_profile" not in st.session_state:
+        st.session_state.edit_profile = False
+        
     # Active Logged-in User Profile Summary Card
     if saved_profile:
-        st.markdown(textwrap.dedent(f"""
-            <div class="glass-card" style="border-left: 4px solid #10B981; margin-bottom: 18px; padding: 18px 22px;">
-                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
-                    <div style="text-align: left;">
-                        <span class="metric-pill pill-green" style="margin-bottom: 6px;">👤 ACTIVE USER PROFILE</span>
-                        <div style="font-size: 1.25rem; font-weight: 700; color: #F0FDFA; margin-top: 4px;">
-                            swapnilshrivastava <span style="font-weight: 400; color: #94A3B8; font-size: 0.95rem;">• {saved_profile.age} yrs • {saved_profile.gender.upper()}</span>
+        prof_card_col, prof_btn_col = st.columns([5.2, 1.2])
+        with prof_card_col:
+            st.markdown(textwrap.dedent(f"""
+                <div class="glass-card" style="border-left: 4px solid #10B981; margin-bottom: 0; padding: 18px 22px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
+                        <div style="text-align: left;">
+                            <span class="metric-pill pill-green" style="margin-bottom: 6px;">👤 ACTIVE USER PROFILE</span>
+                            <div style="font-size: 1.25rem; font-weight: 700; color: #F0FDFA; margin-top: 4px;">
+                                swapnilshrivastava <span style="font-weight: 400; color: #94A3B8; font-size: 0.95rem;">• {saved_profile.age} yrs • {saved_profile.gender.upper()}</span>
+                            </div>
+                            <div style="font-size: 0.9rem; color: #94A3B8; margin-top: 6px;">
+                                📐 Weight: <b>{saved_profile.weight_kg} kg</b> &nbsp;|&nbsp; 
+                                📏 Height: <b>{saved_profile.height_cm} cm</b> &nbsp;|&nbsp; 
+                                ⚡ Activity: <b>{saved_profile.activity_level.replace('_', ' ').title()}</b> &nbsp;|&nbsp; 
+                                🎯 Goal: <b>{saved_profile.goal.replace('_', ' ').title()}</b>
+                            </div>
                         </div>
-                        <div style="font-size: 0.9rem; color: #94A3B8; margin-top: 6px;">
-                            📐 Weight: <b>{saved_profile.weight_kg} kg</b> &nbsp;|&nbsp; 
-                            📏 Height: <b>{saved_profile.height_cm} cm</b> &nbsp;|&nbsp; 
-                            ⚡ Activity: <b>{saved_profile.activity_level.replace('_', ' ').title()}</b> &nbsp;|&nbsp; 
-                            🎯 Goal: <b>{saved_profile.goal.replace('_', ' ').title()}</b>
+                        <div style="text-align: right; font-size: 0.88rem; color: #94A3B8;">
+                            <div>BMR Baseline: <b style="color: #22D3EE;">{int(saved_profile.bmr)} kcal</b></div>
+                            <div style="margin-top: 4px;">TDEE baseline: <b style="color: #34D399;">{int(saved_profile.tdee)} kcal</b></div>
                         </div>
-                    </div>
-                    <div style="text-align: right; font-size: 0.88rem; color: #94A3B8;">
-                        <div>BMR Baseline: <b style="color: #22D3EE;">{int(saved_profile.bmr)} kcal</b></div>
-                        <div style="margin-top: 4px;">TDEE baseline: <b style="color: #34D399;">{int(saved_profile.tdee)} kcal</b></div>
                     </div>
                 </div>
-            </div>
-        """), unsafe_allow_html=True)
-    
+            """), unsafe_allow_html=True)
+        with prof_btn_col:
+            st.write("")
+            st.write("")
+            if st.button("✏️ Edit Profile", key="btn_edit_profile", use_container_width=True):
+                st.session_state.edit_profile = not st.session_state.edit_profile
+                st.rerun()
+            
     # Defaults from DB if available
     def_weight = saved_profile.weight_kg if saved_profile else 75.0
     def_height = saved_profile.height_cm if saved_profile else 178.0
@@ -370,7 +366,8 @@ with tab_macro:
     def_goal = saved_profile.goal if saved_profile else "fat_loss"
     def_mult = saved_profile.protein_multiplier if saved_profile else 2.0
     
-    with st.expander("🧬 Configure Body Metrics & High-Protein Targets (Click to toggle settings)", expanded=not bool(saved_profile)):
+    config_expanded = not bool(saved_profile) or st.session_state.edit_profile
+    with st.expander("🧬 Configure Body Metrics & High-Protein Targets (Click to toggle settings)", expanded=config_expanded):
         col_u1, col_u2, col_u3 = st.columns([1.2, 1.2, 1])
         
         with col_u1:
@@ -451,6 +448,7 @@ with tab_macro:
             target_carbs_g=targets.carbs_g,
             target_fats_g=targets.fats_g,
         )
+        st.session_state.edit_profile = False
         st.toast("✅ Profile and scientific macro targets saved to SQLite database!", icon="🎯")
         st.rerun()
     
@@ -846,136 +844,10 @@ with tab_meals:
                 """, unsafe_allow_html=True)
 
 
-# ==========================================
-# TAB 3: MINDSET & BOOK INSIGHTS RAG
-# ==========================================
-with tab_rag:
-    st.markdown("### 📖 Mindset & Book Insights RAG Agent")
-    st.caption("Semantic vector search indexing core frameworks from Atomic Habits, Outlive, Can't Hurt Me, The Salt Fix, Mindset, and Why We Sleep.")
-
-    col_rag_search, col_rag_cat, col_rag_book = st.columns([1.5, 1, 1])
-    
-    with col_rag_search:
-        rag_query = st.text_input("🔍 Search Literature (e.g., 'protein mTOR', 'friction habits', 'salt hydration', '40% rule')", value="")
-    
-    with col_rag_cat:
-        all_cats = ["All"] + rag_engine.get_all_categories()
-        cat_filter = st.selectbox("Filter Category", all_cats)
-    
-    with col_rag_book:
-        all_books = ["All"] + rag_engine.get_all_books()
-        book_filter = st.selectbox("Filter Book", all_books)
-
-    # Perform Vector Search (Reduced top_k from 4 to 2 for cleaner view)
-    search_results = rag_engine.search(
-        query=rag_query,
-        top_k=2,
-        category=cat_filter if cat_filter != "All" else None,
-        book_title=book_filter if book_filter != "All" else None,
-    )
-
-    st.markdown("#### 📚 Curated Book Frameworks")
-    r_cols = st.columns(2)
-    for idx, insight in enumerate(search_results):
-        col_target = r_cols[idx % 2]
-        with col_target:
-            st.markdown(f"""
-            <div class="glass-card" style="min-height: 250px; margin-bottom: 8px;">
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <span class="metric-pill pill-purple">{insight.book_title}</span>
-                    <span style="color: #9CA3AF; font-size: 0.8rem; font-weight: 500;">{insight.author}</span>
-                </div>
-                <div style="font-weight: 700; font-size: 1.05rem; color: #F0FDFA; margin: 10px 0 6px 0;">{insight.concept_title}</div>
-                <div style="color: #D1D5DB; font-size: 0.88rem; margin-bottom: 10px; line-height: 1.45;">{insight.takeaway}</div>
-                <div style="background: rgba(16, 185, 129, 0.1); border-left: 2px solid #34D399; padding: 8px 12px; border-radius: 6px; font-size: 0.85rem; color: #E5E7EB; margin-bottom: 10px; line-height: 1.4;">
-                    <b>Actionable Protocol:</b> {insight.actionable_protocol}
-                </div>
-                <div class="quote-box" style="font-size: 0.85rem; margin-top: 8px; margin-bottom: 0;">
-                    "{insight.quote}"
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
-            
-            # Favorite button styled neatly
-            if st.button(f"⭐ Bookmark Framework", key=f"fav_{insight.id}", use_container_width=True):
-                save_favorite_insight(
-                    session=db_session,
-                    insight_id=insight.id,
-                    book_title=insight.book_title,
-                    author=insight.author,
-                    concept_title=insight.concept_title,
-                    quote=insight.quote,
-                    actionable_protocol=insight.actionable_protocol
-                )
-                st.toast(f"Saved '{insight.concept_title}' to favorites!", icon="⭐")
-
-    st.markdown("---")
-
-    # AI Micro-Reflection & Coaching Generator
-    # AI Mindset Coach wrapped in an expander to declutter the Agent page
-    with st.expander("🧠 Overcome Mental Friction & Cravings (AI Mindset Coach)", expanded=False):
-        preset_prompts = [
-            "I feel like skipping my high-protein meal prep and ordering junk food.",
-            "Struggling with fatigue and low motivation before a heavy training session.",
-            "Feeling discouraged after a dietary slip-up yesterday.",
-            "Hitting my protein goal when traveling and super busy.",
-            "Custom write-in..."
-        ]
-        
-        prompt_choice = st.selectbox("Select Current Friction / State", preset_prompts)
-        if prompt_choice == "Custom write-in...":
-            user_reflection_prompt = st.text_area("Describe your friction or challenge:", placeholder="e.g., I crave sweets late at night and struggle to get to bed before midnight.")
-        else:
-            user_reflection_prompt = prompt_choice
-            
-        coach_submit = st.button("⚡ Synthesize Book-Backed Action Protocol", type="primary", use_container_width=True)
-
-    if (prompt_choice != "Custom write-in..." and 'coach_submit' in locals() and coach_submit) or (prompt_choice == "Custom write-in..." and 'coach_submit' in locals() and coach_submit and user_reflection_prompt.strip()):
-        with st.spinner("Synthesizing frameworks from Atomic Habits, Outlive & Can't Hurt Me..."):
-            reflection: ReflectionResponse = rag_engine.generate_micro_reflection(
-                user_prompt=user_reflection_prompt,
-                api_key=api_key_input
-            )
-            
-            st.markdown(f"""
-            <div class="glass-card" style="border: 1px solid rgba(52, 211, 153, 0.4); margin-top: 16px;">
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <span class="metric-pill pill-green">🧠 Cognitive Reframing</span>
-                    <span style="color: #9CA3AF; font-size: 0.8rem;">{reflection.source_citation}</span>
-                </div>
-                <div style="font-size: 1.1rem; color: #F9FAFB; margin: 12px 0 16px 0; font-weight: 500;">
-                    {reflection.reflection_summary}
-                </div>
-                <div style="font-weight: 700; color: #34D399; margin-bottom: 8px;">🚀 3-Step Immediate Action Protocol:</div>
-            """, unsafe_allow_html=True)
-            
-            for step in reflection.three_step_action_plan:
-                st.markdown(f"""
-                <div style="display: flex; gap: 10px; margin-bottom: 8px;">
-                    <div style="color: #34D399;">➔</div>
-                    <div style="color: #E5E7EB; font-size: 0.95rem;">{step}</div>
-                </div>
-                """, unsafe_allow_html=True)
-            
-            st.markdown(f"""
-                <div class="quote-box" style="margin-top: 16px; border-left-color: #60A5FA;">
-                    <b style="color: #60A5FA;">Daily Mantra:</b> "{reflection.motivational_mantra}"
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
-
-    # Saved Favorites Display
-    saved_favs = get_favorite_insights(db_session)
-    if saved_favs:
-        with st.expander(f"⭐ Saved Bookmarks ({len(saved_favs)})"):
-            for f in saved_favs:
-                st.markdown(f"""
-                - **{f.concept_title}** (*{f.book_title}* by {f.author}): "{f.quote}"
-                """)
 
 
 # ==========================================
-# TAB 4: PRO TIER & MONETIZATION PREVIEW
+# TAB 3: PRO TIER & MONETIZATION PREVIEW
 # ==========================================
 with tab_pro:
     st.markdown("### 💎 Unlock Full Potential with PULSE Pro & Elite")
