@@ -250,9 +250,9 @@ def authenticate_user(
                 return False, None, "Incorrect password. Please try again."
         
         return True, profile, "Welcome back! Login successful."
-    except Exception as e:
+    except Exception:
         session.rollback()
-        return False, None, f"Authentication error: {str(e)}"
+        return False, None, "Authentication service unavailable. Please check your User ID and Password."
 
 
 def get_latest_profile(session: Session, user_id: str = "default_user") -> Optional[UserProfileRecord]:

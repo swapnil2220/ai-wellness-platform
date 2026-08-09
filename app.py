@@ -308,233 +308,239 @@ with st.sidebar:
     st.caption("PULSE AI Platform v1.0.0 • SQLite Persisted")
 
 
-# Main Tabs Navigation
+# Initialize global authentication session state
+db_session = get_session()
+
+if "user_id" not in st.session_state:
+    st.session_state.user_id = ""
+if "is_logged_in" not in st.session_state:
+    st.session_state.is_logged_in = False
+if "edit_profile" not in st.session_state:
+    st.session_state.edit_profile = False
+
+# =========================================================================
+# 🔒 UNAUTHENTICATED LANDING SCREENER (FIRST TIME / UNLOGGED USERS ONLY)
+# =========================================================================
+if not st.session_state.is_logged_in:
+    st.markdown("""
+    <div style="text-align: center; margin: 2rem 0 1.5rem 0;">
+        <h1 style="color: #F0FDFA; font-weight: 800; font-size: 2.4rem; margin-bottom: 6px;">🌿 PULSE AI Wellness</h1>
+        <p style="color: #94A3B8; font-size: 1.05rem;">High-Protein Metabolic Engine & Culinary AI Companion</p>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    col_l1, col_l2, col_l3 = st.columns([1, 2.8, 1])
+    with col_l2:
+        st.markdown('<div class="glass-card" style="padding: 24px 28px;">', unsafe_allow_html=True)
+        auth_tab_login, auth_tab_reg = st.tabs(["🔑 Log In to Existing Account", "✨ Create New Account / Register"])
+        
+        with auth_tab_login:
+            st.markdown("#### Welcome Back! Access Your Saved Profile & Targets")
+            l_uid = st.text_input("User ID / Username", key="screen_l_uid", placeholder="e.g. swapnil")
+            l_pwd = st.text_input("Password", type="password", key="screen_l_pwd", placeholder="Enter your password")
+            st.write("")
+            if st.button("🔑 Log In", key="btn_screen_login", type="primary", use_container_width=True):
+                ok, profile, msg = authenticate_user(db_session, l_uid, l_pwd)
+                if ok and profile:
+                    st.session_state.user_id = profile.user_id
+                    st.session_state.is_logged_in = True
+                    st.toast(msg, icon="🎉")
+                    st.rerun()
+                else:
+                    st.error(msg)
+                    
+        with auth_tab_reg:
+            st.markdown("#### Create Your Permanent Account & Body Metrics")
+            r_uid = st.text_input("Choose Unique User ID / Username*", key="screen_r_uid", placeholder="e.g. swapnil")
+            r_pwd = st.text_input("Set Password*", type="password", key="screen_r_pwd", placeholder="Set password")
+            r_name = st.text_input("Full Name*", key="screen_r_name", value="Swapnil Shrivastava")
+            
+            rg_col1, rg_col2 = st.columns(2)
+            with rg_col1:
+                r_w = st.number_input("Body Weight (kg)", min_value=30.0, max_value=350.0, value=75.0, step=0.5, key="screen_r_w")
+                r_h = st.number_input("Height (cm)", min_value=100.0, max_value=260.0, value=178.0, step=1.0, key="screen_r_h")
+                r_a = st.number_input("Age (years)", min_value=12, max_value=115, value=28, step=1, key="screen_r_a")
+            with rg_col2:
+                r_sex = st.selectbox("Biological Sex", ["male", "female", "other"], key="screen_r_sex")
+                r_act = st.selectbox("Activity Level", ["sedentary", "light", "moderate", "very_active", "extra_active"], index=2, key="screen_r_act", format_func=lambda x: x.replace('_', ' ').title())
+                r_goal = st.selectbox("Physique Goal", ["fat_loss", "muscle_gain", "maintenance"], index=0, key="screen_r_goal", format_func=lambda x: x.replace('_', ' ').title())
+            
+            r_mult = st.slider("Protein Multiplier (g/kg)", min_value=1.2, max_value=3.2, value=2.0, step=0.1, key="screen_r_mult")
+            st.write("")
+            if st.button("💾 Create Account & Save Profile", key="btn_screen_reg", type="primary", use_container_width=True):
+                if not r_uid or not r_uid.strip():
+                    st.error("Please enter a valid User ID.")
+                elif not r_pwd or not r_pwd.strip():
+                    st.error("Please set a password.")
+                else:
+                    clean_id = r_uid.strip().lower()
+                    profile_input = UserProfileInput(
+                        weight_kg=r_w, height_cm=r_h, age=r_a,
+                        gender=Gender(r_sex), activity_level=ActivityLevel(r_act),
+                        goal=FitnessGoal(r_goal), protein_multiplier=r_mult, meals_per_day=3
+                    )
+                    targets = calculate_macro_targets(profile_input)
+                    save_or_update_profile(
+                        session=db_session, user_id=clean_id, password=r_pwd, name=r_name,
+                        weight_kg=r_w, height_cm=r_h, age=r_a, gender=r_sex,
+                        activity_level=r_act, goal=r_goal, protein_multiplier=r_mult,
+                        bmr=targets.bmr, tdee=targets.tdee, target_calories=targets.target_calories,
+                        target_protein_g=targets.protein_g, target_carbs_g=targets.carbs_g, target_fats_g=targets.fats_g
+                    )
+                    st.session_state.user_id = clean_id
+                    st.session_state.is_logged_in = True
+                    st.toast(f"Account @{clean_id} created successfully!", icon="🎉")
+                    st.rerun()
+        st.markdown('</div>', unsafe_allow_html=True)
+
+    st.stop()
+
+
+# =========================================================================
+# 🔓 UNLOCKED FULL DASHBOARD (LOGGED IN USERS ONLY)
+# =========================================================================
+saved_profile = get_latest_profile(db_session, user_id=st.session_state.user_id)
+
 # Main Tabs Navigation
 tab_macro, tab_meals = st.tabs([
     "📊 1. Macro & Metabolism Tracker",
     "🥗 2. AI High-Protein Meal Builder",
 ])
 
-
 # ==========================================
 # TAB 1: MACRO & METABOLISM TRACKER
 # ==========================================
 with tab_macro:
-    db_session = get_session()
-    
-    # Initialize authentication session state
-    if "user_id" not in st.session_state:
-        st.session_state.user_id = "guest_user"
-    if "is_logged_in" not in st.session_state:
-        st.session_state.is_logged_in = False
-    if "edit_profile" not in st.session_state:
-        st.session_state.edit_profile = False
-
-    saved_profile = get_latest_profile(db_session, user_id=st.session_state.user_id) if st.session_state.is_logged_in else None
-    
-    # Account Portal / Login Box (Visible if not logged in or during registration)
-    if not st.session_state.is_logged_in:
-        with st.expander("🔑 User Account & Login Portal (Access or Create Your Profile)", expanded=True):
-            acc_tab1, acc_tab2 = st.tabs(["🔐 Log In to Existing Account", "✨ Create New Account / Register"])
-            
-            with acc_tab1:
-                st.markdown("Enter your **User ID** and **Password** to load your saved profile, targets, and meal logs:")
-                l_col1, l_col2, l_col3 = st.columns([1.5, 1.5, 1])
-                with l_col1:
-                    login_id = st.text_input("User ID / Username", key="login_id_input", placeholder="e.g. swapnil")
-                with l_col2:
-                    login_pwd = st.text_input("Password", type="password", key="login_pwd_input", placeholder="Enter your password")
-                with l_col3:
-                    st.write("")
-                    st.write("")
-                    if st.button("🔑 Log In", key="btn_login_submit", type="primary", use_container_width=True):
-                        ok, profile, msg = authenticate_user(db_session, login_id, login_pwd)
-                        if ok and profile:
-                            st.session_state.user_id = profile.user_id
-                            st.session_state.is_logged_in = True
-                            st.session_state.edit_profile = False
-                            st.toast(msg, icon="🎉")
-                            st.rerun()
-                        else:
-                            st.error(msg)
-                            
-            with acc_tab2:
-                st.markdown("Set up a new **User ID** and **Password** to save your profile permanently in the database:")
-                r_col1, r_col2 = st.columns(2)
-                with r_col1:
-                    reg_uid_input = st.text_input("Choose Unique User ID / Username*", key="reg_uid_input", placeholder="e.g. swapnil")
-                with r_col2:
-                    reg_pwd_input = st.text_input("Set Account Password*", type="password", key="reg_pwd_input", placeholder="e.g. mysecret123")
-
     # Active Logged-in User Profile Summary Card
-    if st.session_state.is_logged_in and saved_profile:
-        prof_card_col, prof_btn_col = st.columns([4.8, 1.6])
-        with prof_card_col:
-            user_display_name = getattr(saved_profile, 'name', 'User')
-            if not user_display_name:
-                user_display_name = "User"
-            st.markdown(textwrap.dedent(f"""
-                <div class="glass-card" style="border-left: 4px solid #10B981; margin-bottom: 0; padding: 18px 22px;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
-                        <div style="text-align: left;">
-                            <span class="metric-pill pill-green" style="margin-bottom: 6px;">👤 LOGGED IN: @{saved_profile.user_id}</span>
-                            <div style="font-size: 1.25rem; font-weight: 700; color: #F0FDFA; margin-top: 4px;">
-                                {user_display_name} <span style="font-weight: 400; color: #94A3B8; font-size: 0.95rem;">• {saved_profile.age} yrs • {saved_profile.gender.upper()}</span>
-                            </div>
-                            <div style="font-size: 0.9rem; color: #94A3B8; margin-top: 6px;">
-                                📐 Weight: <b>{saved_profile.weight_kg} kg</b> &nbsp;|&nbsp; 
-                                📏 Height: <b>{saved_profile.height_cm} cm</b> &nbsp;|&nbsp; 
-                                ⚡ Activity: <b>{saved_profile.activity_level.replace('_', ' ').title()}</b> &nbsp;|&nbsp; 
-                                🎯 Goal: <b>{saved_profile.goal.replace('_', ' ').title()}</b>
-                            </div>
+    prof_card_col, prof_btn_col = st.columns([4.8, 1.6])
+    with prof_card_col:
+        user_display_name = getattr(saved_profile, 'name', 'User') if saved_profile else "User"
+        u_age = saved_profile.age if saved_profile else 28
+        u_sex = saved_profile.gender.upper() if saved_profile else "MALE"
+        u_weight = saved_profile.weight_kg if saved_profile else 75.0
+        u_height = saved_profile.height_cm if saved_profile else 178.0
+        u_act = saved_profile.activity_level.replace('_', ' ').title() if saved_profile else "Moderate"
+        u_goal = saved_profile.goal.replace('_', ' ').title() if saved_profile else "Fat Loss"
+        u_bmr = int(saved_profile.bmr) if saved_profile and saved_profile.bmr else 1700
+        u_tdee = int(saved_profile.tdee) if saved_profile and saved_profile.tdee else 2400
+        
+        st.markdown(textwrap.dedent(f"""
+            <div class="glass-card" style="border-left: 4px solid #10B981; margin-bottom: 0; padding: 18px 22px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
+                    <div style="text-align: left;">
+                        <span class="metric-pill pill-green" style="margin-bottom: 6px;">👤 LOGGED IN: @{st.session_state.user_id}</span>
+                        <div style="font-size: 1.25rem; font-weight: 700; color: #F0FDFA; margin-top: 4px;">
+                            {user_display_name} <span style="font-weight: 400; color: #94A3B8; font-size: 0.95rem;">• {u_age} yrs • {u_sex}</span>
                         </div>
-                        <div style="text-align: right; font-size: 0.88rem; color: #94A3B8;">
-                            <div>BMR Baseline: <b style="color: #22D3EE;">{int(saved_profile.bmr)} kcal</b></div>
-                            <div style="margin-top: 4px;">TDEE baseline: <b style="color: #34D399;">{int(saved_profile.tdee)} kcal</b></div>
+                        <div style="font-size: 0.9rem; color: #94A3B8; margin-top: 6px;">
+                            📐 Weight: <b>{u_weight} kg</b> &nbsp;|&nbsp; 
+                            📏 Height: <b>{u_height} cm</b> &nbsp;|&nbsp; 
+                            ⚡ Activity: <b>{u_act}</b> &nbsp;|&nbsp; 
+                            🎯 Goal: <b>{u_goal}</b>
                         </div>
                     </div>
+                    <div style="text-align: right; font-size: 0.88rem; color: #94A3B8;">
+                        <div>BMR Baseline: <b style="color: #22D3EE;">{u_bmr} kcal</b></div>
+                        <div style="margin-top: 4px;">TDEE baseline: <b style="color: #34D399;">{u_tdee} kcal</b></div>
+                    </div>
                 </div>
-            """), unsafe_allow_html=True)
-        with prof_btn_col:
-            st.write("")
-            btn_col1, btn_col2 = st.columns(2)
-            with btn_col1:
-                if st.button("✏️ Edit", key="btn_edit_profile", use_container_width=True):
-                    st.session_state.edit_profile = not st.session_state.edit_profile
-                    st.rerun()
-            with btn_col2:
-                if st.button("🚪 Logout", key="btn_logout", use_container_width=True):
-                    st.session_state.is_logged_in = False
-                    st.session_state.user_id = "guest_user"
-                    st.session_state.edit_profile = False
-                    st.toast("Logged out successfully.", icon="ℹ️")
-                    st.rerun()
+            </div>
+        """), unsafe_allow_html=True)
+    with prof_btn_col:
+        st.write("")
+        btn_col1, btn_col2 = st.columns(2)
+        with btn_col1:
+            if st.button("✏️ Edit", key="btn_edit_profile", use_container_width=True):
+                st.session_state.edit_profile = not st.session_state.edit_profile
+                st.rerun()
+        with btn_col2:
+            if st.button("🚪 Logout", key="btn_logout", use_container_width=True):
+                st.session_state.is_logged_in = False
+                st.session_state.user_id = ""
+                st.session_state.edit_profile = False
+                st.toast("Logged out successfully.", icon="ℹ️")
+                st.rerun()
 
-    # Guided Tour & Core Rules
-    with st.expander("💡 New to PULSE AI? Quick Guided Tour & Core Rules", expanded=not st.session_state.is_logged_in):
-        st.markdown(textwrap.dedent("""
-            Welcome to **PULSE AI**, your high-protein metabolic health companion tailored for Indian kitchens!
-            
-            1. 🔑 **Create Account / Log In**: Set your User ID and Password above to save your metrics permanently across devices.
-            2. 👤 **Set Your Metrics**: Save your weight, height, age, and activity. It automatically calculates your BMR, TDEE, Calories, and Protein targets.
-            3. 🍳 **Focus on the Leucine Trigger**: Aim for at least **30g of protein in your main meals** (labeled as **mTOR Active**).
-            4. 🇮🇳 **Indian Kitchen AI Recipes**: Generate meal ideas with low-fat paneer, sattu, curd/dahi, egg whites, chicken breast, dals, and vegetables under the **AI High-Protein Meal Builder** tab.
-        """))
-            
-    # Default metric values
-    def_name = getattr(saved_profile, 'name', 'Swapnil Shrivastava') if saved_profile else "Swapnil Shrivastava"
-    def_weight = saved_profile.weight_kg if saved_profile else 75.0
-    def_height = saved_profile.height_cm if saved_profile else 178.0
-    def_age = saved_profile.age if saved_profile else 28
-    def_gender = saved_profile.gender if saved_profile else "male"
-    def_act = saved_profile.activity_level if saved_profile else "moderate"
-    def_goal = saved_profile.goal if saved_profile else "fat_loss"
-    def_mult = saved_profile.protein_multiplier if saved_profile else 2.0
-    
-    config_title = "🧬 Edit Body Metrics & Metabolic Targets" if st.session_state.is_logged_in else "🧬 Account Registration & Body Metrics Configuration"
-    config_expanded = not st.session_state.is_logged_in or st.session_state.edit_profile
-    with st.expander(config_title, expanded=config_expanded):
-        col_u0, col_u1, col_u2, col_u3 = st.columns([1.2, 1.2, 1.2, 1])
+    # Edit Profile & Body Metrics Form (Collapsible)
+    if st.session_state.edit_profile:
+        def_name = getattr(saved_profile, 'name', 'Swapnil Shrivastava') if saved_profile else "Swapnil Shrivastava"
+        def_weight = saved_profile.weight_kg if saved_profile else 75.0
+        def_height = saved_profile.height_cm if saved_profile else 178.0
+        def_age = saved_profile.age if saved_profile else 28
+        def_gender = saved_profile.gender if saved_profile else "male"
+        def_act = saved_profile.activity_level if saved_profile else "moderate"
+        def_goal = saved_profile.goal if saved_profile else "fat_loss"
+        def_mult = saved_profile.protein_multiplier if saved_profile else 2.0
         
-        with col_u0:
-            target_uid = st.text_input("User ID / Username*", value=st.session_state.user_id if st.session_state.is_logged_in else "swapnil", key="cfg_uid")
-            target_pwd = st.text_input("Account Password*", type="password", key="cfg_pwd", help="Set or update your account password.")
-            name_input = st.text_input("Full Name*", value=def_name, key="cfg_name")
+        with st.expander("🧬 Edit Body Metrics & Targets", expanded=True):
+            col_u0, col_u1, col_u2, col_u3 = st.columns([1.2, 1.2, 1.2, 1])
+            with col_u0:
+                target_uid = st.text_input("User ID / Username*", value=st.session_state.user_id, key="cfg_uid", disabled=True)
+                target_pwd = st.text_input("New Password (Optional)", type="password", key="cfg_pwd")
+                name_input = st.text_input("Full Name*", value=def_name, key="cfg_name")
 
-        with col_u1:
-            weight = st.number_input("Body Weight (kg)", min_value=30.0, max_value=350.0, value=min(350.0, max(30.0, float(def_weight))), step=0.5, key="cfg_weight")
-            height = st.number_input("Height (cm)", min_value=100.0, max_value=260.0, value=min(260.0, max(100.0, float(def_height))), step=1.0, key="cfg_height")
-            age = st.number_input("Age (years)", min_value=12, max_value=115, value=min(115, max(12, int(def_age))), step=1, key="cfg_age")
-        
-        with col_u2:
-            gender_choice = st.selectbox(
-                "Biological Sex",
-                options=["male", "female", "other"],
-                index=["male", "female", "other"].index(def_gender) if def_gender in ["male", "female", "other"] else 0,
-                key="cfg_sex"
-            )
-            activity_choice = st.selectbox(
-                "Activity Level",
-                options=["sedentary", "light", "moderate", "very_active", "extra_active"],
-                index=["sedentary", "light", "moderate", "very_active", "extra_active"].index(def_act) if def_act in ["sedentary", "light", "moderate", "very_active", "extra_active"] else 2,
-                format_func=lambda x: {
-                    "sedentary": "Sedentary (Desk job) - 1.2x",
-                    "light": "Light (1-3 sessions/wk) - 1.375x",
-                    "moderate": "Moderate (3-5 sessions/wk) - 1.55x",
-                    "very_active": "Very Active (6-7 days/wk) - 1.725x",
-                    "extra_active": "Athlete / High Labor - 1.9x",
-                }.get(x, x),
-                key="cfg_act"
-            )
-            goal_choice = st.selectbox(
-                "Physique Goal",
-                options=["fat_loss", "muscle_gain", "maintenance"],
-                index=["fat_loss", "muscle_gain", "maintenance"].index(def_goal) if def_goal in ["fat_loss", "muscle_gain", "maintenance"] else 0,
-                format_func=lambda x: {
-                    "fat_loss": "🔥 Fat Loss (-20% Deficit)",
-                    "muscle_gain": "💪 Muscle Gain (+10% Surplus)",
-                    "maintenance": "⚖️ Maintenance",
-                }.get(x, x),
-                key="cfg_goal"
-            )
+            with col_u1:
+                weight = st.number_input("Body Weight (kg)", min_value=30.0, max_value=350.0, value=min(350.0, max(30.0, float(def_weight))), step=0.5, key="cfg_weight")
+                height = st.number_input("Height (cm)", min_value=100.0, max_value=260.0, value=min(260.0, max(100.0, float(def_height))), step=1.0, key="cfg_height")
+                age = st.number_input("Age (years)", min_value=12, max_value=115, value=min(115, max(12, int(def_age))), step=1, key="cfg_age")
             
-        with col_u3:
-            protein_mult = st.slider(
-                "Protein (g/kg)",
-                min_value=1.2,
-                max_value=3.2,
-                value=min(3.2, max(1.2, float(def_mult))),
-                step=0.1,
-                key="cfg_mult"
-            )
-            meals_count = st.number_input("Target Meals / Day", min_value=1, max_value=8, value=3, step=1, key="cfg_meals")
-            
-            save_btn = st.button("💾 Save Account & Targets", use_container_width=True, type="primary", key="btn_save_profile_main")
+            with col_u2:
+                gender_choice = st.selectbox("Biological Sex", ["male", "female", "other"], index=["male", "female", "other"].index(def_gender) if def_gender in ["male", "female", "other"] else 0, key="cfg_sex")
+                activity_choice = st.selectbox("Activity Level", ["sedentary", "light", "moderate", "very_active", "extra_active"], index=["sedentary", "light", "moderate", "very_active", "extra_active"].index(def_act) if def_act in ["sedentary", "light", "moderate", "very_active", "extra_active"] else 2, format_func=lambda x: x.replace('_', ' ').title(), key="cfg_act")
+                goal_choice = st.selectbox("Physique Goal", ["fat_loss", "muscle_gain", "maintenance"], index=["fat_loss", "muscle_gain", "maintenance"].index(def_goal) if def_goal in ["fat_loss", "muscle_gain", "maintenance"] else 0, format_func=lambda x: x.replace('_', ' ').title(), key="cfg_goal")
+                
+            with col_u3:
+                protein_mult = st.slider("Protein (g/kg)", min_value=1.2, max_value=3.2, value=min(3.2, max(1.2, float(def_mult))), step=0.1, key="cfg_mult")
+                meals_count = st.number_input("Target Meals / Day", min_value=1, max_value=8, value=3, step=1, key="cfg_meals")
+                save_btn = st.button("💾 Save Profile Changes", use_container_width=True, type="primary", key="btn_save_profile_main")
 
-    # Run Macro calculation
+            if save_btn:
+                profile_input = UserProfileInput(
+                    weight_kg=weight, height_cm=height, age=age,
+                    gender=Gender(gender_choice), activity_level=ActivityLevel(activity_choice),
+                    goal=FitnessGoal(goal_choice), protein_multiplier=protein_mult, meals_per_day=meals_count
+                )
+                targets_calc = calculate_macro_targets(profile_input)
+                save_or_update_profile(
+                    session=db_session, user_id=st.session_state.user_id,
+                    password=target_pwd if target_pwd else None, name=name_input,
+                    weight_kg=weight, height_cm=height, age=age, gender=gender_choice,
+                    activity_level=activity_choice, goal=goal_choice, protein_multiplier=protein_mult,
+                    bmr=targets_calc.bmr, tdee=targets_calc.tdee, target_calories=targets_calc.target_calories,
+                    target_protein_g=targets_calc.protein_g, target_carbs_g=targets_calc.carbs_g, target_fats_g=targets_calc.fats_g
+                )
+                st.session_state.edit_profile = False
+                st.toast("Profile updated successfully!", icon="✅")
+                st.rerun()
+
+    # Calculate active user targets
+    curr_weight = saved_profile.weight_kg if saved_profile else 75.0
+    curr_height = saved_profile.height_cm if saved_profile else 178.0
+    curr_age = saved_profile.age if saved_profile else 28
+    curr_gender = saved_profile.gender if saved_profile else "male"
+    curr_act = saved_profile.activity_level if saved_profile else "moderate"
+    curr_goal = saved_profile.goal if saved_profile else "fat_loss"
+    curr_mult = saved_profile.protein_multiplier if saved_profile else 2.0
+    meals_count = 3
+
     profile_input = UserProfileInput(
-        weight_kg=weight,
-        height_cm=height,
-        age=age,
-        gender=Gender(gender_choice),
-        activity_level=ActivityLevel(activity_choice),
-        goal=FitnessGoal(goal_choice),
-        protein_multiplier=protein_mult,
-        meals_per_day=meals_count,
+        weight_kg=curr_weight, height_cm=curr_height, age=curr_age,
+        gender=Gender(curr_gender), activity_level=ActivityLevel(curr_act),
+        goal=FitnessGoal(curr_goal), protein_multiplier=curr_mult, meals_per_day=meals_count
     )
     targets = calculate_macro_targets(profile_input)
 
-    if save_btn:
-        if not target_uid or not target_uid.strip():
-            st.error("Please provide a valid User ID / Username to save your profile.")
-        else:
-            clean_save_uid = target_uid.strip().lower()
-            save_or_update_profile(
-                session=db_session,
-                user_id=clean_save_uid,
-                password=target_pwd if target_pwd else None,
-                name=name_input,
-                weight_kg=weight,
-                height_cm=height,
-                age=age,
-                gender=gender_choice,
-                activity_level=activity_choice,
-                goal=goal_choice,
-                protein_multiplier=protein_mult,
-                bmr=targets.bmr,
-                tdee=targets.tdee,
-                target_calories=targets.target_calories,
-                target_protein_g=targets.protein_g,
-                target_carbs_g=targets.carbs_g,
-                target_fats_g=targets.fats_g,
-            )
-            st.session_state.user_id = clean_save_uid
-            st.session_state.is_logged_in = True
-            st.session_state.edit_profile = False
-            st.toast(f"🎯 Saved profile & password for User ID '@{clean_save_uid}'!", icon="✅")
-            st.rerun()
+    # 📅 DAY-WISE CALENDAR PROGRESS TRACKER
+    st.markdown("---")
+    cal_col1, cal_col2 = st.columns([2, 1])
+    with cal_col1:
+        st.markdown("### 📋 Progress Tracker & History")
+    with cal_col2:
+        selected_date = st.date_input("📅 Calendar Date Selector", value=datetime.date.today(), key="calendar_date_picker")
+
+    today_data = get_today_progress(db_session, target_date=selected_date, user_id=st.session_state.user_id)
     
-    # Premium KPI Target Cards Grid (Streamlined to 3 columns to reduce visual clutter)
+    # Premium KPI Target Cards Grid
     k1, k2, k3 = st.columns(3)
     with k1:
         st.markdown(f"""
@@ -566,9 +572,7 @@ with tab_macro:
 
     # Interactive Plots
     col_chart1, col_chart2 = st.columns([1, 1.2])
-    
     with col_chart1:
-        # Donut Chart for Macro Distribution with Soothing Green & Cyan Colors
         donut_fig = go.Figure(data=[go.Pie(
             labels=["Protein (4 kcal/g)", "Carbohydrates (4 kcal/g)", "Healthy Fats (9 kcal/g)"],
             values=[targets.protein_g * 4, targets.carbs_g * 4, targets.fats_g * 9],
@@ -578,7 +582,7 @@ with tab_macro:
             hoverinfo="label+value+percent",
         )])
         donut_fig.update_layout(
-            title="<b>Daily Calorie Breakdown by Macronutrient</b>",
+            title="<b>Daily Calorie Breakdown</b>",
             paper_bgcolor="rgba(0,0,0,0)",
             plot_bgcolor="rgba(0,0,0,0)",
             font=dict(color="#F0FDFA", family="Outfit"),
@@ -589,7 +593,6 @@ with tab_macro:
         st.plotly_chart(donut_fig, use_container_width=True)
 
     with col_chart2:
-        # Per-Meal Target Allocation List (Clean HTML rendering without nested dedent whitespace issues)
         meal_rows_html = ""
         for m in targets.meals:
             status_pill = "<span class='metric-pill pill-green' style='font-size:0.65rem; padding: 2px 8px;'>Active mTOR</span>" if m.target_protein_g >= 28.0 else "<span class='metric-pill pill-amber' style='font-size:0.65rem; padding: 2px 8px;'>Low MPS</span>"
@@ -598,15 +601,13 @@ with tab_macro:
         full_per_meal_card = f'<div class="glass-card" style="min-height: 320px; padding: 22px 24px; margin-bottom: 0;"><div style="font-weight: 700; font-size: 1.1rem; color: #F0FDFA; margin-bottom: 12px; letter-spacing: -0.2px; text-align: left;">🧬 Per-Meal Target Allocation</div><div style="display: flex; flex-direction: column;">{meal_rows_html}</div></div>'
         st.markdown(full_per_meal_card, unsafe_allow_html=True)
 
-    # Today's Progress & Quick Meal Logger
-    st.markdown("### 📋 Today's Progress & Meal Logging")
-    today_data = get_today_progress(db_session, user_id=st.session_state.user_id)
-    
+    # Day-wise Consumed Progress Cards for Selected Date
     logged_p = today_data["total_protein_g"]
     logged_cal = today_data["total_calories"]
     rem_p = max(0.0, round(targets.protein_g - logged_p, 1))
     rem_cal = max(0.0, round(targets.target_calories - logged_cal, 1))
     
+    st.markdown(f"#### 📊 Progress Summary for {selected_date.strftime('%B %d, %Y')}")
     prog_col1, prog_col2, prog_col3, prog_col4 = st.columns(4)
     with prog_col1:
         p_pct = min(100.0, (logged_p / max(1.0, targets.protein_g)) * 100)
@@ -659,13 +660,46 @@ with tab_macro:
         w_btn_col1, w_btn_col2 = st.columns(2)
         with w_btn_col1:
             if st.button("+250ml", use_container_width=True, key="add_water_250"):
-                update_water(db_session, 250, user_id=st.session_state.user_id)
-                st.toast("💧 Logged 250ml Water!", icon="✅")
+                update_water(db_session, 250, target_date=selected_date, user_id=st.session_state.user_id)
+                st.toast(f"💧 Logged 250ml Water for {selected_date}!", icon="✅")
                 st.rerun()
         with w_btn_col2:
             if st.button("+500ml", use_container_width=True, key="add_water_500"):
-                update_water(db_session, 500, user_id=st.session_state.user_id)
-                st.toast("💧 Logged 500ml Water!", icon="✅")
+                update_water(db_session, 500, target_date=selected_date, user_id=st.session_state.user_id)
+                st.toast(f"💧 Logged 500ml Water for {selected_date}!", icon="✅")
+                st.rerun()
+
+    # Log Custom Meal for Selected Date
+    with st.expander(f"➕ Log a Custom Meal for {selected_date.strftime('%B %d, %Y')}"):
+        with st.form("quick_log_form"):
+            ql_col1, ql_col2, ql_col3, ql_col4, ql_col5 = st.columns(5)
+            with ql_col1:
+                q_name = st.text_input("Meal Name", value="Post-Workout Whey Shake")
+            with ql_col2:
+                q_type = st.selectbox("Meal Type", ["breakfast", "lunch", "dinner", "snack", "post_workout"])
+            with ql_col3:
+                q_p = st.number_input("Protein (g)", min_value=0.0, value=35.0, step=1.0)
+            with ql_col4:
+                q_c = st.number_input("Carbs (g)", min_value=0.0, value=15.0, step=1.0)
+            with ql_col5:
+                q_f = st.number_input("Fat (g)", min_value=0.0, value=3.0, step=1.0)
+            
+            q_cals = round((q_p * 4.0) + (q_c * 4.0) + (q_f * 9.0), 1)
+            st.caption(f"Calculated Calories: **{q_cals} kcal**")
+            
+            if st.form_submit_button("Record Meal", use_container_width=True, type="primary"):
+                log_meal(
+                    session=db_session,
+                    meal_name=q_name,
+                    meal_type=q_type,
+                    protein_g=q_p,
+                    carbs_g=q_c,
+                    fat_g=q_f,
+                    calories=q_cals,
+                    target_date=selected_date,
+                    user_id=st.session_state.user_id,
+                )
+                st.toast(f"Logged '{q_name}' (+{q_p}g Protein) for {selected_date}!", icon="✅")
                 st.rerun()
 
     # Quick Meal Logger Expandable Form
