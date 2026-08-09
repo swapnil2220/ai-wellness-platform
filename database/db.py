@@ -146,10 +146,31 @@ def get_engine(db_url: Optional[str] = None):
 
 
 def init_db(db_url: Optional[str] = None):
-    """Create all tables in the database safely."""
+    """Create all tables and safely auto-migrate missing columns for existing SQLite DBs."""
     try:
         engine = get_engine(db_url)
         Base.metadata.create_all(bind=engine)
+        
+        # Auto-migrate SQLite schema for missing columns on pre-existing database files
+        if "sqlite" in (db_url or DATABASE_URL):
+            with engine.connect() as conn:
+                # Migrate user_profiles
+                res = conn.exec_driver_sql("PRAGMA table_info(user_profiles);").fetchall()
+                cols = {row[1] for row in res}
+                if "user_id" not in cols:
+                    conn.exec_driver_sql("ALTER TABLE user_profiles ADD COLUMN user_id VARCHAR(100);")
+                if "password_hash" not in cols:
+                    conn.exec_driver_sql("ALTER TABLE user_profiles ADD COLUMN password_hash VARCHAR(256);")
+                if "name" not in cols:
+                    conn.exec_driver_sql("ALTER TABLE user_profiles ADD COLUMN name VARCHAR(100);")
+                
+                # Migrate daily_macro_logs
+                res_log = conn.exec_driver_sql("PRAGMA table_info(daily_macro_logs);").fetchall()
+                log_cols = {row[1] for row in res_log}
+                if "user_id" not in log_cols:
+                    conn.exec_driver_sql("ALTER TABLE daily_macro_logs ADD COLUMN user_id VARCHAR(100);")
+                
+                conn.commit()
         return engine
     except Exception:
         return None

@@ -702,38 +702,6 @@ with tab_macro:
                 st.toast(f"Logged '{q_name}' (+{q_p}g Protein) for {selected_date}!", icon="✅")
                 st.rerun()
 
-    # Quick Meal Logger Expandable Form
-    with st.expander("➕ Log a Custom Meal or Quick Snack"):
-        with st.form("quick_log_form"):
-            ql_col1, ql_col2, ql_col3, ql_col4, ql_col5 = st.columns(5)
-            with ql_col1:
-                q_name = st.text_input("Meal Name", value="Post-Workout Whey Shake")
-            with ql_col2:
-                q_type = st.selectbox("Meal Type", ["breakfast", "lunch", "dinner", "snack", "post_workout"])
-            with ql_col3:
-                q_p = st.number_input("Protein (g)", min_value=0.0, value=35.0, step=1.0)
-            with ql_col4:
-                q_c = st.number_input("Carbs (g)", min_value=0.0, value=15.0, step=1.0)
-            with ql_col5:
-                q_f = st.number_input("Fat (g)", min_value=0.0, value=3.0, step=1.0)
-            
-            q_cals = round((q_p * 4.0) + (q_c * 4.0) + (q_f * 9.0), 1)
-            st.caption(f"Calculated Calories: **{q_cals} kcal**")
-            
-            if st.form_submit_button("Record Meal", use_container_width=True, type="primary"):
-                log_meal(
-                    session=db_session,
-                    meal_name=q_name,
-                    meal_type=q_type,
-                    protein_g=q_p,
-                    carbs_g=q_c,
-                    fat_g=q_f,
-                    calories=q_cals,
-                    user_id=st.session_state.user_id,
-                )
-                st.toast(f"Logged '{q_name}' (+{q_p}g Protein)!", icon="✅")
-                st.rerun()
-
     # Logged Meals List Table
     if today_data["meals"]:
         st.markdown("##### Logged Today:")
