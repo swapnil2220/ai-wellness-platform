@@ -9,10 +9,11 @@ Uses SQLAlchemy to manage local SQLite storage for:
 """
 
 import datetime
+import hashlib
 import json
 import os
 import tempfile
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 from sqlalchemy import (
     Column,
     Date,
@@ -33,12 +34,20 @@ def _get_utc_now():
     return datetime.datetime.now(datetime.timezone.utc)
 
 
+def hash_password(password: str) -> str:
+    """Hash a plaintext password with SHA256 for secure local storage."""
+    if not password:
+        return ""
+    return hashlib.sha256(f"pulse_salt_{password}".encode("utf-8")).hexdigest()
+
+
 class UserProfileRecord(Base):
     __tablename__ = "user_profiles"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     user_id = Column(String(100), nullable=True, index=True)
     name = Column(String(100), nullable=True, default="Guest")
+    password_hash = Column(String(256), nullable=True)
     weight_kg = Column(Float, nullable=False)
     height_cm = Column(Float, nullable=False)
     age = Column(Integer, nullable=False)
@@ -174,16 +183,20 @@ def save_or_update_profile(
     target_fats_g: float,
     name: str = "Guest",
     user_id: str = "default_user",
+    password: Optional[str] = None,
 ) -> UserProfileRecord:
-    """Save or update the latest user profile and targets safely."""
+    """Save or update the user profile and targets securely bound to user_id."""
+    clean_uid = user_id.strip().lower() if user_id else "default_user"
     try:
-        profile = session.query(UserProfileRecord).filter(UserProfileRecord.user_id == user_id).first()
+        profile = session.query(UserProfileRecord).filter(UserProfileRecord.user_id == clean_uid).first()
         if not profile:
-            profile = UserProfileRecord(user_id=user_id)
+            profile = UserProfileRecord(user_id=clean_uid)
             session.add(profile)
 
-        profile.user_id = user_id
+        profile.user_id = clean_uid
         profile.name = name
+        if password and password.strip():
+            profile.password_hash = hash_password(password.strip())
         profile.weight_kg = weight_kg
         profile.height_cm = height_cm
         profile.age = age
@@ -204,19 +217,49 @@ def save_or_update_profile(
         return profile
     except Exception:
         session.rollback()
-        return UserProfileRecord(
-            user_id=user_id, name=name, weight_kg=weight_kg, height_cm=height_cm, age=age,
+        p = UserProfileRecord(
+            user_id=clean_uid, name=name, weight_kg=weight_kg, height_cm=height_cm, age=age,
             gender=gender, activity_level=activity_level, goal=goal,
             protein_multiplier=protein_multiplier, bmr=bmr, tdee=tdee,
             target_calories=target_calories, target_protein_g=target_protein_g,
             target_carbs_g=target_carbs_g, target_fats_g=target_fats_g
         )
+        if password and password.strip():
+            p.password_hash = hash_password(password.strip())
+        return p
+
+
+def authenticate_user(
+    session: Session,
+    user_id: str,
+    password: str
+) -> Tuple[bool, Optional[UserProfileRecord], str]:
+    """Authenticate a user by User ID and Password safely."""
+    if not user_id or not user_id.strip():
+        return False, None, "User ID cannot be empty."
+    clean_uid = user_id.strip().lower()
+    try:
+        profile = session.query(UserProfileRecord).filter(UserProfileRecord.user_id == clean_uid).first()
+        if not profile:
+            return False, None, f"User ID '{clean_uid}' not found. Please register/create an account."
+        
+        # If account has a password set, verify hash
+        if profile.password_hash:
+            entered_hash = hash_password(password.strip() if password else "")
+            if profile.password_hash != entered_hash:
+                return False, None, "Incorrect password. Please try again."
+        
+        return True, profile, "Welcome back! Login successful."
+    except Exception as e:
+        session.rollback()
+        return False, None, f"Authentication error: {str(e)}"
 
 
 def get_latest_profile(session: Session, user_id: str = "default_user") -> Optional[UserProfileRecord]:
     """Retrieve the user profile for a specific user safely."""
+    clean_uid = user_id.strip().lower() if user_id else "default_user"
     try:
-        return session.query(UserProfileRecord).filter(UserProfileRecord.user_id == user_id).order_by(UserProfileRecord.id.desc()).first()
+        return session.query(UserProfileRecord).filter(UserProfileRecord.user_id == clean_uid).order_by(UserProfileRecord.id.desc()).first()
     except Exception:
         session.rollback()
         return None

@@ -9,6 +9,7 @@ from database.db import (
     get_session,
     save_or_update_profile,
     get_latest_profile,
+    authenticate_user,
     log_meal,
     get_today_progress,
     save_favorite_insight,
@@ -78,6 +79,44 @@ def test_meal_logging_and_today_progress(db_session):
     assert summary["meals_count"] == 2
     assert summary["total_protein_g"] == 95.0
     assert summary["total_calories"] == 838.0
+
+
+def test_user_authentication_and_password(db_session):
+    save_or_update_profile(
+        session=db_session,
+        user_id="swapnil",
+        password="mysecretpassword",
+        name="Swapnil Shrivastava",
+        weight_kg=75.0,
+        height_cm=178.0,
+        age=28,
+        gender="male",
+        activity_level="moderate",
+        goal="fat_loss",
+        protein_multiplier=2.0,
+        bmr=1700.0,
+        tdee=2400.0,
+        target_calories=1920.0,
+        target_protein_g=150.0,
+        target_carbs_g=180.0,
+        target_fats_g=50.0,
+    )
+    
+    # Test successful login
+    ok, prof, msg = authenticate_user(db_session, "swapnil", "mysecretpassword")
+    assert ok is True
+    assert prof is not None
+    assert prof.name == "Swapnil Shrivastava"
+    
+    # Test wrong password
+    ok_fail, prof_fail, msg_fail = authenticate_user(db_session, "swapnil", "wrongpassword")
+    assert ok_fail is False
+    assert prof_fail is None
+    assert "Incorrect password" in msg_fail
+
+    # Test non-existent user
+    ok_no_user, _, _ = authenticate_user(db_session, "non_existent_user", "password")
+    assert ok_no_user is False
 
 
 def test_save_favorite_insight(db_session):
