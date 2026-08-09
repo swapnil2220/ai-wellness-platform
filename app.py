@@ -15,6 +15,7 @@ import streamlit as st
 import plotly.graph_objects as go
 import plotly.express as px
 import textwrap
+import uuid
 from dotenv import load_dotenv
 
 # Load environment variables
@@ -318,8 +319,12 @@ tab_macro, tab_meals = st.tabs([
 # TAB 1: MACRO & METABOLISM TRACKER
 # ==========================================
 with tab_macro:
+    # Initialize unique user session ID for 100% data privacy & multi-user isolation
+    if "user_id" not in st.session_state:
+        st.session_state.user_id = str(uuid.uuid4())
+        
     db_session = get_session()
-    saved_profile = get_latest_profile(db_session)
+    saved_profile = get_latest_profile(db_session, user_id=st.session_state.user_id)
     # Initialize edit profile state
     if "edit_profile" not in st.session_state:
         st.session_state.edit_profile = False
@@ -466,6 +471,7 @@ with tab_macro:
             target_protein_g=targets.protein_g,
             target_carbs_g=targets.carbs_g,
             target_fats_g=targets.fats_g,
+            user_id=st.session_state.user_id,
         )
         st.session_state.edit_profile = False
         st.toast("✅ Profile and scientific macro targets saved to SQLite database!", icon="🎯")
@@ -537,7 +543,7 @@ with tab_macro:
 
     # Today's Progress & Quick Meal Logger
     st.markdown("### 📋 Today's Progress & Meal Logging")
-    today_data = get_today_progress(db_session)
+    today_data = get_today_progress(db_session, user_id=st.session_state.user_id)
     
     logged_p = today_data["total_protein_g"]
     logged_cal = today_data["total_calories"]
@@ -596,12 +602,12 @@ with tab_macro:
         w_btn_col1, w_btn_col2 = st.columns(2)
         with w_btn_col1:
             if st.button("+250ml", use_container_width=True, key="add_water_250"):
-                update_water(db_session, 250)
+                update_water(db_session, 250, user_id=st.session_state.user_id)
                 st.toast("💧 Logged 250ml Water!", icon="✅")
                 st.rerun()
         with w_btn_col2:
             if st.button("+500ml", use_container_width=True, key="add_water_500"):
-                update_water(db_session, 500)
+                update_water(db_session, 500, user_id=st.session_state.user_id)
                 st.toast("💧 Logged 500ml Water!", icon="✅")
                 st.rerun()
 
@@ -631,7 +637,8 @@ with tab_macro:
                     protein_g=q_p,
                     carbs_g=q_c,
                     fat_g=q_f,
-                    calories=q_cals
+                    calories=q_cals,
+                    user_id=st.session_state.user_id,
                 )
                 st.toast(f"Logged '{q_name}' (+{q_p}g Protein)!", icon="✅")
                 st.rerun()
@@ -818,7 +825,8 @@ with tab_meals:
                 carbs_g=recipe.carbs_g,
                 fat_g=recipe.fat_g,
                 calories=recipe.calories,
-                ingredients_list=[i.model_dump() for i in recipe.ingredients]
+                ingredients_list=[i.model_dump() for i in recipe.ingredients],
+                user_id=st.session_state.user_id,
             )
             st.toast(f"Added '{recipe.meal_name}' (+{recipe.protein_g}g Protein) to your daily log!", icon="✅")
 

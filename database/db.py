@@ -37,6 +37,7 @@ class UserProfileRecord(Base):
     __tablename__ = "user_profiles"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
+    user_id = Column(String(100), nullable=True, index=True)
     name = Column(String(100), nullable=True, default="Guest")
     weight_kg = Column(Float, nullable=False)
     height_cm = Column(Float, nullable=False)
@@ -59,7 +60,8 @@ class DailyMacroLogRecord(Base):
     __tablename__ = "daily_macro_logs"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    log_date = Column(Date, nullable=False, unique=True, default=datetime.date.today)
+    user_id = Column(String(100), nullable=True, index=True)
+    log_date = Column(Date, nullable=False, default=datetime.date.today)
     total_calories = Column(Float, default=0.0)
     total_protein_g = Column(Float, default=0.0)
     total_carbs_g = Column(Float, default=0.0)
@@ -171,14 +173,16 @@ def save_or_update_profile(
     target_carbs_g: float,
     target_fats_g: float,
     name: str = "Guest",
+    user_id: str = "default_user",
 ) -> UserProfileRecord:
-    """Save or update the latest user profile and targets."""
+    """Save or update the latest user profile and targets safely."""
     try:
-        profile = session.query(UserProfileRecord).order_by(UserProfileRecord.id.desc()).first()
+        profile = session.query(UserProfileRecord).filter(UserProfileRecord.user_id == user_id).first()
         if not profile:
-            profile = UserProfileRecord()
+            profile = UserProfileRecord(user_id=user_id)
             session.add(profile)
 
+        profile.user_id = user_id
         profile.name = name
         profile.weight_kg = weight_kg
         profile.height_cm = height_cm
@@ -201,7 +205,7 @@ def save_or_update_profile(
     except Exception:
         session.rollback()
         return UserProfileRecord(
-            name=name, weight_kg=weight_kg, height_cm=height_cm, age=age,
+            user_id=user_id, name=name, weight_kg=weight_kg, height_cm=height_cm, age=age,
             gender=gender, activity_level=activity_level, goal=goal,
             protein_multiplier=protein_multiplier, bmr=bmr, tdee=tdee,
             target_calories=target_calories, target_protein_g=target_protein_g,
@@ -209,29 +213,32 @@ def save_or_update_profile(
         )
 
 
-def get_latest_profile(session: Session) -> Optional[UserProfileRecord]:
-    """Retrieve the most recent user profile safely."""
+def get_latest_profile(session: Session, user_id: str = "default_user") -> Optional[UserProfileRecord]:
+    """Retrieve the user profile for a specific user safely."""
     try:
-        return session.query(UserProfileRecord).order_by(UserProfileRecord.id.desc()).first()
+        return session.query(UserProfileRecord).filter(UserProfileRecord.user_id == user_id).order_by(UserProfileRecord.id.desc()).first()
     except Exception:
         session.rollback()
         return None
 
 
-def get_or_create_daily_log(session: Session, target_date: Optional[datetime.date] = None) -> DailyMacroLogRecord:
-    """Fetch or initialize the daily macro log record for a given date safely."""
+def get_or_create_daily_log(session: Session, target_date: Optional[datetime.date] = None, user_id: str = "default_user") -> DailyMacroLogRecord:
+    """Fetch or initialize the daily macro log record for a given date and user safely."""
     d = target_date or datetime.date.today()
     try:
-        log = session.query(DailyMacroLogRecord).filter(DailyMacroLogRecord.log_date == d).first()
+        log = session.query(DailyMacroLogRecord).filter(
+            DailyMacroLogRecord.log_date == d,
+            DailyMacroLogRecord.user_id == user_id
+        ).first()
         if not log:
-            log = DailyMacroLogRecord(log_date=d)
+            log = DailyMacroLogRecord(log_date=d, user_id=user_id)
             session.add(log)
             session.commit()
             session.refresh(log)
         return log
     except Exception:
         session.rollback()
-        return DailyMacroLogRecord(log_date=d, total_calories=0.0, total_protein_g=0.0, total_carbs_g=0.0, total_fats_g=0.0, water_ml=0)
+        return DailyMacroLogRecord(log_date=d, user_id=user_id, total_calories=0.0, total_protein_g=0.0, total_carbs_g=0.0, total_fats_g=0.0, water_ml=0)
 
 
 def log_meal(
@@ -243,11 +250,12 @@ def log_meal(
     fat_g: float,
     calories: float,
     ingredients_list: Optional[List[Dict[str, Any]]] = None,
-    target_date: Optional[datetime.date] = None
+    target_date: Optional[datetime.date] = None,
+    user_id: str = "default_user",
 ) -> LoggedMealRecord:
     """Log a meal and update today's macro aggregates safely."""
     try:
-        daily_log = get_or_create_daily_log(session, target_date)
+        daily_log = get_or_create_daily_log(session, target_date, user_id=user_id)
         ingredients_json = json.dumps(ingredients_list) if ingredients_list else None
         meal = LoggedMealRecord(
             daily_log_id=daily_log.id if hasattr(daily_log, 'id') else 1,
@@ -278,10 +286,10 @@ def log_meal(
         )
 
 
-def get_today_progress(session: Session, target_date: Optional[datetime.date] = None) -> Dict[str, Any]:
+def get_today_progress(session: Session, target_date: Optional[datetime.date] = None, user_id: str = "default_user") -> Dict[str, Any]:
     """Retrieve today's aggregate calories, macros, and logged meals list safely."""
     try:
-        daily_log = get_or_create_daily_log(session, target_date)
+        daily_log = get_or_create_daily_log(session, target_date, user_id=user_id)
         meals = []
         if hasattr(daily_log, 'id') and daily_log.id is not None:
             meals = (
@@ -380,10 +388,10 @@ def get_favorite_insights(session: Session) -> List[SavedInsightRecord]:
         return []
 
 
-def update_water(session: Session, delta_ml: int, target_date: Optional[datetime.date] = None) -> DailyMacroLogRecord:
+def update_water(session: Session, delta_ml: int, target_date: Optional[datetime.date] = None, user_id: str = "default_user") -> DailyMacroLogRecord:
     """Add/subtract water intake in mL for the daily log safely."""
     try:
-        log = get_or_create_daily_log(session, target_date)
+        log = get_or_create_daily_log(session, target_date, user_id=user_id)
         if hasattr(log, 'water_ml'):
             log.water_ml = max(0, log.water_ml + delta_ml)
             session.commit()
