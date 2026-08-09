@@ -526,33 +526,14 @@ with tab_macro:
         st.plotly_chart(donut_fig, use_container_width=True)
 
     with col_chart2:
-        # Per-Meal Target Allocation List (Saves space and looks extremely clean)
+        # Per-Meal Target Allocation List (Clean HTML rendering without nested dedent whitespace issues)
         meal_rows_html = ""
         for m in targets.meals:
             status_pill = "<span class='metric-pill pill-green' style='font-size:0.65rem; padding: 2px 8px;'>Active mTOR</span>" if m.target_protein_g >= 28.0 else "<span class='metric-pill pill-amber' style='font-size:0.65rem; padding: 2px 8px;'>Low MPS</span>"
-            meal_rows_html += textwrap.dedent(f"""
-                <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.04);">
-                    <div style="text-align: left;">
-                        <span style="font-weight: 600; color: #F0FDFA; font-size: 0.92rem;">{m.name}</span>
-                        <div style="color: #94A3B8; font-size: 0.8rem; margin-top: 2px;">{int(m.target_calories)} kcal Target</div>
-                    </div>
-                    <div style="display: flex; align-items: center; gap: 8px;">
-                        <span style="color: #34D399; font-weight: 700; font-size: 0.98rem;">{m.target_protein_g}g P</span>
-                        {status_pill}
-                    </div>
-                </div>
-            """)
+            meal_rows_html += f'<div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.04);"><div style="text-align: left;"><span style="font-weight: 600; color: #F0FDFA; font-size: 0.92rem;">{m.name}</span><div style="color: #94A3B8; font-size: 0.8rem; margin-top: 2px;">{int(m.target_calories)} kcal Target</div></div><div style="display: flex; align-items: center; gap: 8px;"><span style="color: #34D399; font-weight: 700; font-size: 0.98rem;">{m.target_protein_g}g P</span>{status_pill}</div></div>'
             
-        st.markdown(textwrap.dedent(f"""
-            <div class="glass-card" style="min-height: 320px; padding: 22px 24px; margin-bottom: 0;">
-                <div style="font-weight: 700; font-size: 1.1rem; color: #F0FDFA; margin-bottom: 12px; letter-spacing: -0.2px; text-align: left;">
-                    🧬 Per-Meal Target Allocation
-                </div>
-                <div style="display: flex; flex-direction: column;">
-                    {meal_rows_html}
-                </div>
-            </div>
-        """), unsafe_allow_html=True)
+        full_per_meal_card = f'<div class="glass-card" style="min-height: 320px; padding: 22px 24px; margin-bottom: 0;"><div style="font-weight: 700; font-size: 1.1rem; color: #F0FDFA; margin-bottom: 12px; letter-spacing: -0.2px; text-align: left;">🧬 Per-Meal Target Allocation</div><div style="display: flex; flex-direction: column;">{meal_rows_html}</div></div>'
+        st.markdown(full_per_meal_card, unsafe_allow_html=True)
 
     # Today's Progress & Quick Meal Logger
     st.markdown("### 📋 Today's Progress & Meal Logging")
